@@ -81,6 +81,13 @@
             opacity: 0.9;
         }
 
+        #art-container,
+        #art-shape,
+        #art-base,
+        #art-image {
+            touch-action: none;
+        }
+
         /* Classes auxiliares para animação do Tutorial */
         .tut-step { display: none; animation: fadeIn 0.3s ease-out forwards; }
         .tut-step.active { display: block; }
@@ -103,7 +110,6 @@
                 <!-- Botão Tutorial -->
                 <button onclick="openTutorial()" class="relative px-4 py-1.5 rounded-full bg-indigo-600 text-white text-[11px] font-bold uppercase tracking-wider hover:bg-indigo-700 hover:scale-105 transition-all shadow-[0_0_12px_rgba(79,70,229,0.5)] flex items-center justify-center" title="Ver Tutorial">
                     <span class="relative z-10">Tutorial</span>
-                    <span class="absolute inset-0 rounded-full bg-indigo-500 animate-ping opacity-30 pointer-events-none"></span>
                 </button>
                 <!-- Botão Modo Noturno -->
                 <button onclick="toggleDarkMode()" class="p-2.5 rounded-full bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-yellow-400 hover:scale-105 transition" title="Alternar Modo Noturno">
@@ -401,7 +407,7 @@
         <!-- Camada de Granulado Estética (Noise) -->
         <div class="noise-overlay"></div>
 
-        <div id="art-container" class="relative flex items-center justify-center w-[300px] sm:w-[420px] aspect-square drop-shadow-sm cursor-grab active:cursor-grabbing">
+        <div id="art-container" class="relative flex items-center justify-center w-full max-w-[420px] aspect-square drop-shadow-sm cursor-grab active:cursor-grabbing">
             <!-- Fundo Base Extra (Por trás de tudo) -->
             <div id="art-base" class="absolute transition-shape" style="display: none;"></div>
 
@@ -546,7 +552,6 @@
             { id: 13, name: "Esquerda Vazado", file: "images/Esquerda Vazado.png", group: 3 },
             { id: 14, name: "Frente Vazado", file: "images/Frente Vazado.png", group: 3 },
             
-            { id: 15, name: "Rinocerontes Separados", file: "images/Rinocerontes Separados.png", group: 1 }
         ];
 
         let state = {
@@ -569,6 +574,8 @@
             shapeOffset: { x: 0, y: 0 },
             baseOffset: { x: 0, y: 0 },
             imageOffset: { x: 0, y: 0 },
+            imageRotation: 0,
+            imageFlip: 1,
             locks: { art: false, shape: false, shapeColor: false, imgColor: false, canvasColor: false, base: false }
         };
 
@@ -759,12 +766,52 @@
             baseC.addEventListener('touchstart', e => startDrag(e, 'base'), {passive: false});
             
             imgC.style.pointerEvents = 'auto';
-            imgC.addEventListener('mousedown', e => startDrag(e, 'image'));
-            imgC.addEventListener('touchstart', e => startDrag(e, 'image'), {passive: false});
+            imgC.addEventListener('mousedown', e => {
+                if (e.shiftKey || e.altKey) startRotateDesktop(e);
+                else startDrag(e, 'image');
+            });
+            imgC.addEventListener('touchstart', e => {
+                if (e.touches.length === 2) startTouchRotate(e);
+                else startDrag(e, 'image');
+            }, {passive: false});
+            imgC.addEventListener('dblclick', e => { e.stopPropagation(); toggleImageFlip(); });
+
+            let initialImageRotateAngle = 0;
+            let imageRotateStart = null;
+
+            const getTouchAngle = touches => {
+                const dx = touches[1].clientX - touches[0].clientX;
+                const dy = touches[1].clientY - touches[0].clientY;
+                return Math.atan2(dy, dx) * 180 / Math.PI;
+            };
+
+            const startRotateDesktop = e => {
+                activeDraggable = 'imageRotateDesktop';
+                dragOffset.x = e.clientX;
+                imageRotateStart = state.imageRotation;
+                e.preventDefault();
+            };
+
+            const startTouchRotate = e => {
+                if (e.touches.length !== 2) return;
+                activeDraggable = 'imageRotate';
+                initialImageRotateAngle = getTouchAngle(e.touches);
+                imageRotateStart = state.imageRotation;
+                e.preventDefault();
+            };
 
             const onMove = e => {
                 if (!activeDraggable) return;
-                e.preventDefault(); 
+                e.preventDefault();
+
+                if (activeDraggable === 'imageRotate' && e.touches && e.touches.length === 2) {
+                    const currentAngle = getTouchAngle(e.touches);
+                    const delta = currentAngle - initialImageRotateAngle;
+                    state.imageRotation = imageRotateStart + delta;
+                    renderCanvas();
+                    return;
+                }
+
                 const clientX = e.clientX || (e.touches ? e.touches[0].clientX : 0);
                 const clientY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
                 const newX = clientX - dragOffset.x;
@@ -772,13 +819,17 @@
 
                 if (activeDraggable === 'shape') state.shapeOffset = { x: newX, y: newY };
                 else if (activeDraggable === 'base') state.baseOffset = { x: newX, y: newY };
-                else state.imageOffset = { x: newX, y: newY };
-                
+                else if (activeDraggable === 'image') state.imageOffset = { x: newX, y: newY };
+                else if (activeDraggable === 'imageRotateDesktop') {
+                    state.imageRotation = imageRotateStart + (clientX - dragOffset.x) * 0.5;
+                }
+
                 renderCanvas();
             };
 
             const endDrag = () => { 
                 activeDraggable = null; 
+                imageRotateStart = null;
                 container.style.cursor = 'grab';
             };
 
@@ -786,6 +837,7 @@
             window.addEventListener('touchmove', onMove, {passive: false});
             window.addEventListener('mouseup', endDrag);
             window.addEventListener('touchend', endDrag);
+            window.addEventListener('touchcancel', endDrag);
 
             container.addEventListener('dblclick', () => {
                 state.shapeOffset = { x: 0, y: 0 };
@@ -793,6 +845,11 @@
                 state.imageOffset = { x: 0, y: 0 };
                 renderCanvas();
             });
+        }
+
+        function toggleImageFlip() {
+            state.imageFlip = state.imageFlip === 1 ? -1 : 1;
+            renderCanvas();
         }
 
         function setShapeType(type) {
@@ -983,18 +1040,25 @@
             }
 
             const currentArt = arts[state.artIndex];
-            imgC.style.backgroundImage = `url('${currentArt.file}')`;
-            imgC.style.transform = `translate(${state.imageOffset.x}px, ${state.imageOffset.y}px)`;
-            
+            imgC.style.transform = `translate(${state.imageOffset.x}px, ${state.imageOffset.y}px) rotate(${state.imageRotation}deg) scaleX(${state.imageFlip})`;
+            imgC.style.transformOrigin = 'center';
+            imgC.style.backgroundPosition = 'center';
+            imgC.style.backgroundSize = 'contain';
+            imgC.style.backgroundRepeat = 'no-repeat';
+            imgC.style.webkitMaskPosition = 'center';
+            imgC.style.maskPosition = 'center';
+            imgC.style.webkitMaskSize = 'contain';
+            imgC.style.maskSize = 'contain';
+            imgC.style.webkitMaskRepeat = 'no-repeat';
+            imgC.style.maskRepeat = 'no-repeat';
+
             if (currentArt.group > 1 && state.imageFill) {
+                imgC.style.backgroundImage = 'none';
                 imgC.style.backgroundColor = hslToHex(state.imageColor.h, state.imageColor.s, state.imageColor.l);
                 imgC.style.webkitMaskImage = `url('${currentArt.file}')`;
                 imgC.style.maskImage = `url('${currentArt.file}')`;
-                imgC.style.webkitMaskSize = 'contain';
-                imgC.style.maskSize = 'contain';
-                imgC.style.webkitMaskRepeat = 'no-repeat';
-                imgC.style.maskRepeat = 'no-repeat';
             } else {
+                imgC.style.backgroundImage = `url('${currentArt.file}')`;
                 imgC.style.backgroundColor = 'transparent';
                 imgC.style.webkitMaskImage = 'none';
                 imgC.style.maskImage = 'none';
@@ -1216,12 +1280,13 @@
                 ctx.translate(750 + (state.imageOffset.x * 3.5), 750 + (state.imageOffset.y * 3.5));
                 const imgSize = 1500 * 0.75; 
                 
-                if (currentArt.group > 1 && state.imageFill) {
+                    if (currentArt.group > 1 && state.imageFill) {
                     // Preenchimento customizado com máscara da imagem
                     ctx.fillStyle = hslToHex(state.imageColor.h, state.imageColor.s, state.imageColor.l);
                     ctx.fillRect(-imgSize/2, -imgSize/2, imgSize, imgSize);
                     ctx.globalCompositeOperation = 'destination-in';
                     ctx.drawImage(img, -imgSize/2, -imgSize/2, imgSize, imgSize);
+                    ctx.globalCompositeOperation = 'source-over';
                 } else {
                     // Arte normal ou vazada original
                     ctx.drawImage(img, -imgSize/2, -imgSize/2, imgSize, imgSize);
