@@ -889,6 +889,15 @@
         let activeDraggable = null;
         let dragOffset = { x: 0, y: 0 };
 
+        function getContainerRelativePosition(clientX, clientY) {
+            const container = document.getElementById('art-container');
+            const rect = container.getBoundingClientRect();
+            return {
+                x: clientX - rect.left - rect.width / 2,
+                y: clientY - rect.top - rect.height / 2
+            };
+        }
+
         function setupDragAndDrop() {
             const container = document.getElementById('art-container');
             const shapeC = document.getElementById('art-shape');
@@ -906,13 +915,18 @@
                 activeDraggable = targetName;
                 const clientX = e.clientX || e.touches[0].clientX;
                 const clientY = e.clientY || e.touches[0].clientY;
-                
+                const pos = getContainerRelativePosition(clientX, clientY);
+
                 let currentOffset = state.imageOffset;
                 if (targetName === 'shape') currentOffset = state.shapeOffset;
                 else if (targetName === 'base') currentOffset = state.baseOffset;
-                
-                dragOffset.x = clientX - currentOffset.x;
-                dragOffset.y = clientY - currentOffset.y;
+                else if (targetName === 'text') {
+                    const item = state.textItems.find(i => i.id === activeTextId);
+                    if (item) currentOffset = { x: item.x, y: item.y };
+                }
+
+                dragOffset.x = pos.x - currentOffset.x;
+                dragOffset.y = pos.y - currentOffset.y;
                 container.style.cursor = 'grabbing';
                 e.stopPropagation();
             };
@@ -971,8 +985,9 @@
 
                 const clientX = e.clientX || (e.touches ? e.touches[0].clientX : 0);
                 const clientY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
-                const newX = clientX - dragOffset.x;
-                const newY = clientY - dragOffset.y;
+                const pos = getContainerRelativePosition(clientX, clientY);
+                const newX = pos.x - dragOffset.x;
+                const newY = pos.y - dragOffset.y;
 
                 if (activeDraggable === 'shape') state.shapeOffset = { x: newX, y: newY };
                 else if (activeDraggable === 'base') state.baseOffset = { x: newX, y: newY };
@@ -1291,6 +1306,15 @@
                         item.text = contentEl.innerText.trim();
                     });
 
+                    el.addEventListener('mousedown', e => {
+                        if (e.target.closest('.text-toolbar') || e.target === contentEl) return;
+                        startDragText(e, item.id);
+                    });
+                    el.addEventListener('touchstart', e => {
+                        if (e.target.closest('.text-toolbar') || e.target === contentEl) return;
+                        startDragText(e, item.id);
+                    }, { passive: false });
+
                     el.addEventListener('click', e => {
                         e.stopPropagation();
                         setActiveTextItem(item.id);
@@ -1346,6 +1370,8 @@
                 el.style.fontWeight = item.weight;
                 el.style.fontSize = item.size + 'px';
                 el.style.color = getTextColorHex(item.color);
+                el.style.cursor = 'grab';
+                contentEl.style.cursor = 'text';
                 el.classList.toggle('selected', activeTextId === item.id);
                 if (contentEl && contentEl.innerText !== item.text) contentEl.innerText = item.text;
                 const toolbar = el.querySelector('.text-toolbar');
@@ -1609,14 +1635,15 @@
                     ctx.save();
                     ctx.translate(center, center);
                     state.textItems.forEach(item => {
-                        ctx.font = `${item.weight} ${item.size}px ${item.font}`;
+                        const scaledSize = item.size * scale;
+                        ctx.font = `${item.weight} ${scaledSize}px ${item.font}`;
                         ctx.fillStyle = getTextColorHex(item.color);
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
                         const lines = item.text.split('\n');
-                        const lineHeight = item.size * 1.1;
+                        const lineHeight = scaledSize * 1.1;
                         lines.forEach((line, index) => {
-                            ctx.fillText(line, item.x, item.y + (index - (lines.length - 1) / 2) * lineHeight);
+                            ctx.fillText(line, item.x * scale, item.y * scale + (index - (lines.length - 1) / 2) * lineHeight);
                         });
                     });
                     ctx.restore();
