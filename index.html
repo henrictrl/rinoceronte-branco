@@ -1910,14 +1910,22 @@
             const link = document.createElement('a');
             link.href = blobUrl;
             link.download = filename;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
             link.style.display = 'none';
             document.body.appendChild(link);
+
+            const clickEvent = new MouseEvent('click', {
+                view: window,
+                bubbles: true,
+                cancelable: true
+            });
 
             const isiOS = /iP(ad|hone|od)/.test(navigator.userAgent);
             const supportsDownload = 'download' in link;
 
             if (!isiOS && supportsDownload) {
-                link.click();
+                link.dispatchEvent(clickEvent);
             } else {
                 const file = new File([blob], filename, { type: 'image/png' });
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -1925,16 +1933,30 @@
                         title: 'Rinoceronte Branco',
                         text: 'Aqui está sua arte pronta para salvar.',
                         files: [file]
-                    }).catch(() => window.open(blobUrl, '_blank'));
+                    }).catch(() => {
+                        const openLink = document.createElement('a');
+                        openLink.href = blobUrl;
+                        openLink.target = '_blank';
+                        openLink.rel = 'noopener noreferrer';
+                        document.body.appendChild(openLink);
+                        openLink.dispatchEvent(clickEvent);
+                        openLink.remove();
+                    });
                 } else {
-                    window.open(blobUrl, '_blank');
+                    const openLink = document.createElement('a');
+                    openLink.href = blobUrl;
+                    openLink.target = '_blank';
+                    openLink.rel = 'noopener noreferrer';
+                    document.body.appendChild(openLink);
+                    openLink.dispatchEvent(clickEvent);
+                    openLink.remove();
                 }
             }
 
             setTimeout(() => {
                 URL.revokeObjectURL(blobUrl);
                 link.remove();
-            }, 2000);
+            }, 10000);
         }
 
         function createArtCanvas(currentArt, imgSize) {
