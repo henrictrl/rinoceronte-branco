@@ -274,6 +274,10 @@
     <!-- ÁREA PRINCIPAL (CANVAS) -->
     <main id="main-canvas" class="order-1 md:order-2 h-[45%] md:h-full md:flex-1 w-full canvas-bg flex flex-col items-center justify-center p-4 md:p-8 relative z-10 overflow-hidden">
         
+        <div class="absolute top-4 left-1/2 -translate-x-1/2 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md px-4 py-2 rounded-full text-[10px] md:text-xs text-slate-600 dark:text-slate-300 font-medium shadow-sm pointer-events-none z-30 flex items-center gap-2 border border-slate-200/50 dark:border-slate-700/50 text-center w-max">
+            <i data-feather="move" class="w-3 h-3"></i> Arraste as formas (2x clique centraliza)
+        </div>
+
         <!-- CONTAINER PARA EXPORTAÇÃO -->
         <!-- Responsive Fix: No mobile é limitado pela altura, no desktop é limitado pela largura -->
         <div id="art-container" class="relative flex items-center justify-center aspect-square h-[90%] md:h-auto w-auto max-w-[95vw] md:w-full md:max-w-[550px] transition-transform duration-300 isolate mx-auto">
@@ -332,9 +336,9 @@
         const state = {
             isDark: false,
             artIndex: 0,
-            base: { active: false, type: 'circle', scale: 90 },
+            base: { active: false, type: 'circle', scale: 90, x: 0, y: 0 },
             baseColor: { h: 200, s: 40, l: 80 },
-            shape: { type: 'star', points: 5, scale: 100, rotation: 0, irregularRadii: [], ellipseX: 50, ellipseY: 50 },
+            shape: { type: 'star', points: 5, scale: 100, rotation: 0, irregularRadii: [], ellipseX: 50, ellipseY: 50, x: 0, y: 0 },
             shapeColor: { h: 250, s: 85, l: 65 },
             imageColor: { h: 15, s: 85, l: 55 },
             imageFill: true, 
@@ -403,10 +407,73 @@
         function initApp() {
             buildUI();
             setupEventListeners();
+            setupDraggable();
             
             regenerateIrregular(false); 
             syncDOMWithState();
             renderCanvas();
+        }
+
+        function setupDraggable() {
+            const shapes = [
+                { el: DOM.shapeContainer, stateRef: state.shape },
+                { el: DOM.baseContainer, stateRef: state.base }
+            ];
+
+            shapes.forEach(item => {
+                let isDragging = false;
+                let startX, startY, initialX, initialY;
+
+                const onMove = (e) => {
+                    if (!isDragging) return;
+                    e.preventDefault(); // Evita scroll da tela no celular
+                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                    
+                    item.stateRef.x = initialX + (clientX - startX);
+                    item.stateRef.y = initialY + (clientY - startY);
+                    
+                    renderCanvas();
+                };
+
+                const onUp = () => {
+                    if (!isDragging) return;
+                    isDragging = false;
+                    item.el.style.cursor = 'grab';
+                    document.removeEventListener('mousemove', onMove);
+                    document.removeEventListener('mouseup', onUp);
+                    document.removeEventListener('touchmove', onMove);
+                    document.removeEventListener('touchend', onUp);
+                };
+
+                const onDown = (e) => {
+                    if (e.type === 'mousedown' && e.button !== 0) return; // Apenas clique esquerdo
+                    isDragging = true;
+                    item.el.style.cursor = 'grabbing';
+                    
+                    startX = e.touches ? e.touches[0].clientX : e.clientX;
+                    startY = e.touches ? e.touches[0].clientY : e.clientY;
+                    initialX = item.stateRef.x || 0;
+                    initialY = item.stateRef.y || 0;
+
+                    document.addEventListener('mousemove', onMove, { passive: false });
+                    document.addEventListener('mouseup', onUp);
+                    document.addEventListener('touchmove', onMove, { passive: false });
+                    document.addEventListener('touchend', onUp);
+                };
+
+                item.el.style.cursor = 'grab';
+                item.el.addEventListener('mousedown', onDown);
+                item.el.addEventListener('touchstart', onDown, { passive: false });
+                
+                // Duplo clique para centralizar a forma
+                item.el.addEventListener('dblclick', () => {
+                    saveHistory();
+                    item.stateRef.x = 0;
+                    item.stateRef.y = 0;
+                    renderCanvas();
+                });
+            });
         }
 
         function buildUI() {
@@ -711,17 +778,17 @@
                 DOM.imageContainer.style.backgroundImage = `url('${art.file}')`;
             }
 
-            // --- 4. Atualizar Forma Geométrica ---
+            // --- 4. Atualizar Forma Destaque ---
             const path = calculateClipPath(state.shape.type, state.shape.points, state.shape.irregularRadii);
             DOM.shapeContainer.style.clipPath = path;
             DOM.shapeContainer.style.backgroundColor = `hsl(${state.shapeColor.h}, ${state.shapeColor.s}%, ${state.shapeColor.l}%)`;
-            DOM.shapeContainer.style.transform = `scale(${state.shape.scale / 100}) rotate(${state.shape.rotation}deg)`;
+            DOM.shapeContainer.style.transform = `translate(${state.shape.x}px, ${state.shape.y}px) scale(${state.shape.scale / 100}) rotate(${state.shape.rotation}deg)`;
 
             // --- 5. Renderizar Fundo Base ---
             if (state.base.active) {
                 DOM.baseContainer.style.display = 'block';
                 DOM.baseContainer.style.backgroundColor = `hsl(${state.baseColor.h}, ${state.baseColor.s}%, ${state.baseColor.l}%)`;
-                DOM.baseContainer.style.transform = `scale(${state.base.scale / 100})`;
+                DOM.baseContainer.style.transform = `translate(${state.base.x}px, ${state.base.y}px) scale(${state.base.scale / 100})`;
                 
                 if (state.base.type === 'circle') DOM.baseContainer.style.clipPath = 'circle(50% at 50% 50%)';
                 else if (state.base.type === 'square') DOM.baseContainer.style.clipPath = 'inset(0%)';
