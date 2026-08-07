@@ -1905,7 +1905,22 @@
             const link = document.createElement('a');
             link.download = `Rinoceronte_Branco_${Date.now()}.png`;
             link.href = canvas.toDataURL('image/png');
-            link.click();
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+
+            if (typeof link.click === 'function') {
+                link.click();
+            } else {
+                const evt = document.createEvent('MouseEvents');
+                evt.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+                link.dispatchEvent(evt);
+            }
+
+            setTimeout(() => {
+                if (!document.location.protocol.startsWith('http')) {
+                    window.open(link.href, '_blank');
+                }
+            }, 100);
         }
 
         function createArtCanvas(currentArt, imgSize) {
