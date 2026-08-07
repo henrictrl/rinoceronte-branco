@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rhino Studio Pro - Composição de Logos</title>
+    <title>Rinoceronte Branco</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -186,7 +186,12 @@
 
             <!-- SEÇÃO 3: Cor do Destaque (Forma) -->
             <section class="space-y-3 pt-5 border-t border-slate-100 dark:border-slate-700">
-                <label class="block text-sm font-semibold">3. Cor do Destaque (Forma)</label>
+                <div class="flex justify-between items-center">
+                    <label class="block text-sm font-semibold">3. Cor do Destaque (Forma)</label>
+                    <button onclick="randomizeShapeColor()" class="text-[10px] font-bold flex items-center gap-1 text-pink-600 bg-pink-50 dark:bg-pink-900/30 dark:text-pink-400 px-2 py-1.5 rounded transition hover:scale-105 active:scale-95">
+                        <i data-feather="aperture" class="w-3 h-3"></i> Sortear Cor
+                    </button>
+                </div>
                 <input type="range" id="shape-hue" min="0" max="360" value="250" class="hue-gradient">
                 <input type="range" id="shape-sat" min="0" max="100" value="85">
                 <input type="range" id="shape-lig" min="0" max="100" value="65">
@@ -863,35 +868,203 @@
 
         const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
+        function randomizeShapeColor() {
+            state.shapeColor = { h: rand(0,360), s: rand(40,100), l: rand(30,70) };
+            syncDOMWithState();
+            renderCanvas();
+        }
+
         function randomizeAll() {
             // Sorteia entre os 15 espaços pré-carregados
             selectArt(rand(0, 14));
             
             randomizeShape();
             
-            // Fundo base agora permanece intacto (não é mais sorteado)
-            
             state.shapeColor = { h: rand(0,360), s: rand(40,100), l: rand(30,70) };
             state.imageColor = { h: rand(0,360), s: rand(40,100), l: rand(30,70) };
-            
-            // Cor do ambiente (canvas) agora também permanece intacta
 
             syncDOMWithState();
             renderCanvas();
         }
 
         function downloadImage() {
-            const container = document.getElementById('art-container');
-            const imgEl = DOM.imageContainer;
+            // Mostra status de carregando no botão
+            const btn = document.querySelector('button[onclick="downloadImage()"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i data-feather="loader" class="w-4 h-4 animate-spin"></i> Gerando...';
+            feather.replace();
 
-            html2canvas(container, {
-                backgroundColor: null, scale: 3, logging: false, allowTaint: true, useCORS: true
-            }).then(canvas => {
+            const container = document.getElementById('art-container');
+            const rect = container.getBoundingClientRect();
+            
+            // Exportação Nativa via Canvas (Ignora bugs do html2canvas)
+            const exportScale = 3; 
+            const canvas = document.createElement('canvas');
+            canvas.width = rect.width * exportScale;
+            canvas.height = rect.height * exportScale;
+            const ctx = canvas.getContext('2d');
+
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+
+            function drawBaseShape() {
+                if (!state.base.active) return;
+                ctx.save();
+                ctx.translate(cx + state.base.x * exportScale, cy + state.base.y * exportScale);
+                ctx.scale(state.base.scale / 100, state.base.scale / 100);
+                
+                const bw = canvas.width * 0.9;
+                const bh = canvas.height * 0.9;
+                
+                ctx.fillStyle = `hsl(${state.baseColor.h}, ${state.baseColor.s}%, ${state.baseColor.l}%)`;
+                ctx.shadowColor = 'rgba(0,0,0,0.1)';
+                ctx.shadowBlur = 15 * exportScale;
+                ctx.shadowOffsetY = 10 * exportScale;
+                
+                ctx.beginPath();
+                if (state.base.type === 'circle') {
+                    ctx.arc(0, 0, bw / 2, 0, Math.PI * 2);
+                } else if (state.base.type === 'square') {
+                    ctx.rect(-bw / 2, -bh / 2, bw, bh);
+                } else if (state.base.type === 'rounded') {
+                    if (ctx.roundRect) {
+                        ctx.roundRect(-bw / 2, -bh / 2, bw, bh, bw * 0.15);
+                    } else { // Fallback navegadores antigos
+                        const r = bw * 0.15; const x = -bw / 2; const y = -bh / 2;
+                        ctx.moveTo(x + r, y);
+                        ctx.arcTo(x + bw, y, x + bw, y + bh, r);
+                        ctx.arcTo(x + bw, y + bh, x, y + bh, r);
+                        ctx.arcTo(x, y + bh, x, y, r);
+                        ctx.arcTo(x, y, x + bw, y, r);
+                    }
+                }
+                ctx.fill();
+                ctx.restore();
+            }
+
+            function drawArtShape() {
+                ctx.save();
+                ctx.translate(cx + state.shape.x * exportScale, cy + state.shape.y * exportScale);
+                ctx.scale(state.shape.scale / 100, state.shape.scale / 100);
+                ctx.rotate((state.shape.rotation * Math.PI) / 180);
+                
+                const aw = canvas.width * 0.8;
+                const ah = canvas.height * 0.8;
+                
+                ctx.fillStyle = `hsl(${state.shapeColor.h}, ${state.shapeColor.s}%, ${state.shapeColor.l}%)`;
+                ctx.shadowColor = 'rgba(0,0,0,0.25)';
+                ctx.shadowBlur = 25 * exportScale;
+                ctx.shadowOffsetY = 25 * exportScale;
+
+                ctx.beginPath();
+                
+                if (state.shape.type === 'circle') {
+                    const rx = (state.shape.ellipseX / 100) * aw; 
+                    const ry = (state.shape.ellipseY / 100) * ah;
+                    if (ctx.ellipse) {
+                        ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+                    } else { 
+                        ctx.arc(0, 0, rx, 0, Math.PI * 2); 
+                    }
+                } else {
+                    const points = state.shape.points;
+                    const type = state.shape.type;
+                    const radii = state.shape.irregularRadii;
+                    const isDoublePoints = (type === 'star' || type === 'concave');
+                    const totalSteps = points * (isDoublePoints ? 2 : 1);
+                    
+                    for (let i = 0; i < totalSteps; i++) {
+                        let angle = (i / totalSteps) * 2 * Math.PI - Math.PI / 2;
+                        let rPercent = 50; 
+                        
+                        if (type === 'star') {
+                            if (i % 2 !== 0) rPercent = 22;
+                        } else if (type === 'concave') {
+                            rPercent = 15 + (radii[i] || 0.5) * 35;
+                        } else if (type === 'convex') {
+                            rPercent = 45 + (radii[i] || 0.5) * 5;
+                        } else if (type === 'complex') {
+                            const angleOffset = ((radii[i] || 0.5) - 0.5) * (Math.PI * 1.5);
+                            angle += angleOffset;
+                            rPercent = 20 + (radii[i] || 0.5) * 30;
+                        }
+                        
+                        const px = (rPercent / 50) * (aw / 2) * Math.cos(angle);
+                        const py = (rPercent / 50) * (ah / 2) * Math.sin(angle);
+                        
+                        if (i === 0) ctx.moveTo(px, py);
+                        else ctx.lineTo(px, py);
+                    }
+                    ctx.closePath();
+                }
+                ctx.fill();
+                ctx.restore();
+            }
+
+            function drawImageAndExport() {
+                const art = arts[state.artIndex];
+                if (!art.file) return exportCanvas();
+                
+                const img = new Image();
+                img.crossOrigin = "Anonymous";
+                img.onload = () => {
+                    ctx.save();
+                    const iw = canvas.width * 0.75;
+                    const ih = canvas.height * 0.75;
+                    const scale = Math.min(iw / img.width, ih / img.height);
+                    const fitW = img.width * scale;
+                    const fitH = img.height * scale;
+                    const dx = cx - fitW / 2;
+                    const dy = cy - fitH / 2;
+
+                    const isCustomizable = art.group === 2 || art.group === 3;
+                    
+                    if (isCustomizable) {
+                        if (state.imageFill) {
+                            const tCanvas = document.createElement('canvas');
+                            tCanvas.width = canvas.width;
+                            tCanvas.height = canvas.height;
+                            const tCtx = tCanvas.getContext('2d');
+                            tCtx.drawImage(img, dx, dy, fitW, fitH);
+                            tCtx.globalCompositeOperation = 'source-in';
+                            tCtx.fillStyle = `hsl(${state.imageColor.h}, ${state.imageColor.s}%, ${state.imageColor.l}%)`;
+                            tCtx.fillRect(0, 0, tCanvas.width, tCanvas.height);
+                            
+                            ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                            ctx.shadowBlur = 25 * exportScale;
+                            ctx.shadowOffsetY = 20 * exportScale;
+                            ctx.drawImage(tCanvas, 0, 0);
+                        } else { // VAZADO (Knockout) perfura o fundo
+                            ctx.globalCompositeOperation = 'destination-out';
+                            ctx.drawImage(img, dx, dy, fitW, fitH);
+                        }
+                    } else { // Normal (Lote 1)
+                        ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                        ctx.shadowBlur = 25 * exportScale;
+                        ctx.shadowOffsetY = 20 * exportScale;
+                        ctx.drawImage(img, dx, dy, fitW, fitH);
+                    }
+                    
+                    ctx.restore();
+                    exportCanvas();
+                };
+                img.onerror = () => exportCanvas();
+                img.src = art.file;
+            }
+
+            function exportCanvas() {
                 const link = document.createElement('a');
                 link.download = `RhinoLogo_${Date.now()}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
-            });
+                btn.innerHTML = originalText;
+                feather.replace();
+            }
+
+            // Inicia o processo de renderização nativa em ordem (Base > Forma > Imagem > Exportar)
+            drawBaseShape();
+            drawArtShape();
+            drawImageAndExport();
         }
 
         window.onload = initApp;
