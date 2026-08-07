@@ -24,6 +24,7 @@
 
         /* Sliders Nativos */
         input[type=range] {
+            appearance: none;
             -webkit-appearance: none;
             width: 100%;
             background: #e5e7eb;
@@ -84,8 +85,49 @@
         #art-container,
         #art-shape,
         #art-base,
-        #art-image {
+        #art-image,
+        .text-item {
             touch-action: none;
+        }
+
+        .text-item {
+            position: absolute;
+            min-width: 48px;
+            max-width: 220px;
+            padding: 8px 10px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            text-align: center;
+            cursor: text;
+            user-select: text;
+            background: rgba(255,255,255,0.85);
+            border: 1px solid rgba(148,163,184,0.7);
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 35px rgba(15,23,42,0.08);
+            line-height: 1.1;
+            color: #111827;
+        }
+
+        .text-item:focus {
+            outline: 2px solid rgba(59,130,246,0.8);
+            outline-offset: 2px;
+        }
+
+        .text-item .drag-handle {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 18px;
+            height: 18px;
+            border-radius: 9999px;
+            background: rgba(255,255,255,0.95);
+            border: 1px solid rgba(148,163,184,0.8);
+            display: grid;
+            place-items: center;
+            font-size: 10px;
+            cursor: grab;
+            user-select: none;
+            color: #475569;
         }
 
         /* Classes auxiliares para animação do Tutorial */
@@ -306,7 +348,45 @@
                 </div>
             </div>
 
-            <!-- SEÇÃO 5: Cor do Ambiente (Canvas) -->
+            <!-- SEÇÃO 5: Texto -->
+            <div class="space-y-4 pt-4 border-t border-gray-100 dark:border-slate-700">
+                <div class="flex justify-between items-center">
+                    <label class="text-sm font-semibold text-gray-700 dark:text-gray-300">5. Texto</label>
+                    <button type="button" onclick="addTextItem()" class="text-[10px] uppercase font-bold px-3 py-1.5 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition" title="Adicionar texto">Adicionar</button>
+                </div>
+                <div class="space-y-3">
+                    <input id="text-input" type="text" placeholder="Escreva algo e pressione Enter" class="w-full text-xs px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg text-gray-700 dark:text-gray-100 outline-none focus:ring-1 focus:ring-indigo-500 transition" maxlength="120">
+                    <div class="grid grid-cols-2 gap-2">
+                        <select id="text-font-select" class="p-2.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg text-sm font-medium outline-none dark:text-gray-200">
+                            <option value="Montserrat">Montserrat</option>
+                            <option value="Arial">Arial</option>
+                            <option value="Georgia">Georgia</option>
+                            <option value="Courier New">Courier New</option>
+                        </select>
+                        <select id="text-weight-select" class="p-2.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg text-sm font-medium outline-none dark:text-gray-200">
+                            <option value="400">Regular</option>
+                            <option value="500">Medium</option>
+                            <option value="600">Semi Bold</option>
+                            <option value="700">Bold</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 items-end">
+                        <div>
+                            <label class="text-[10px] uppercase tracking-wider text-gray-400 dark:text-gray-500">Cor do texto</label>
+                            <input type="color" id="text-color-picker" value="#111111" class="w-full h-10 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 cursor-pointer">
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 font-medium">
+                                <span>Tamanho</span>
+                                <span id="text-size-val">36px</span>
+                            </div>
+                            <input type="range" id="text-size-slider" min="16" max="72" value="36">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEÇÃO 6: Cor do Ambiente (Canvas) -->
             <div class="space-y-4 pt-4 border-t border-gray-100 dark:border-slate-700">
                 <div class="flex justify-between items-center">
                     <label class="text-sm font-semibold text-gray-700 dark:text-gray-300">5. Cor do Ambiente</label>
@@ -565,6 +645,11 @@
             shapeColor: { h: 15, s: 85, l: 55 },
             imageColor: { h: 0, s: 0, l: 100 },
             imageFill: true,
+            textItems: [],
+            textFont: 'Montserrat',
+            textWeight: '600',
+            textSize: 36,
+            textColor: { h: 0, s: 0, l: 7 },
             canvasColor: { h: 40, s: 15, l: 90 },
             baseVisible: false,
             baseType: 'circle',
@@ -673,6 +758,7 @@
             setupColorBinding(document.getElementById('canvas-hue-slider'), document.getElementById('canvas-sat-slider'), document.getElementById('canvas-lig-slider'), document.getElementById('canvas-hex-input'), 'canvasColor');
             setupColorBinding(document.getElementById('base-hue-slider'), document.getElementById('base-sat-slider'), document.getElementById('base-lig-slider'), document.getElementById('base-hex-input'), 'baseColor');
 
+            setupTextListeners();
             setupEventListeners();
             setupDragAndDrop();
             
@@ -683,6 +769,33 @@
         } // <- Final da initApp
         
         // Removemos o setTimeout que abria o tutorial sozinho.
+
+        function setupTextListeners() {
+            // placeholder for future text-specific logic if needed
+        }
+
+        function addTextItem() {
+            const textInput = document.getElementById('text-input');
+            const text = textInput.value.trim();
+            if (!text) return;
+            const item = {
+                id: Date.now() + Math.random(),
+                text,
+                x: 0,
+                y: 0,
+                font: state.textFont,
+                weight: state.textWeight,
+                size: state.textSize,
+                color: { ...state.textColor },
+                el: null
+            };
+            state.textItems.push(item);
+            textInput.value = '';
+            renderCanvas();
+            requestAnimationFrame(() => {
+                if (item.el) item.el.focus();
+            });
+        }
 
         function setupEventListeners() {
             document.getElementById('points-slider').addEventListener('input', e => {
@@ -720,6 +833,32 @@
                 renderCanvas();
             });
 
+            document.getElementById('text-input').addEventListener('keydown', e => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addTextItem();
+                }
+            });
+            document.getElementById('text-font-select').addEventListener('change', e => {
+                state.textFont = e.target.value;
+                renderCanvas();
+            });
+            document.getElementById('text-weight-select').addEventListener('change', e => {
+                state.textWeight = e.target.value;
+                renderCanvas();
+            });
+            document.getElementById('text-color-picker').addEventListener('input', e => {
+                const color = hexToHsl(e.target.value);
+                if (color) {
+                    state.textColor = color;
+                    renderCanvas();
+                }
+            });
+            document.getElementById('text-size-slider').addEventListener('input', e => {
+                state.textSize = parseInt(e.target.value);
+                document.getElementById('text-size-val').textContent = state.textSize + 'px';
+                renderCanvas();
+            });
             document.getElementById('base-visible-toggle').addEventListener('change', e => {
                 state.baseVisible = e.target.checked;
                 renderCanvas();
@@ -744,6 +883,13 @@
             const shapeC = document.getElementById('art-shape');
             const baseC = document.getElementById('art-base');
             const imgC = document.getElementById('art-image');
+            let textLayer = document.getElementById('text-items-layer');
+            if (!textLayer) {
+                textLayer = document.createElement('div');
+                textLayer.id = 'text-items-layer';
+                textLayer.className = 'absolute inset-0';
+                container.appendChild(textLayer);
+            }
 
             const startDrag = (e, targetName) => {
                 activeDraggable = targetName;
@@ -820,7 +966,13 @@
                 if (activeDraggable === 'shape') state.shapeOffset = { x: newX, y: newY };
                 else if (activeDraggable === 'base') state.baseOffset = { x: newX, y: newY };
                 else if (activeDraggable === 'image') state.imageOffset = { x: newX, y: newY };
-                else if (activeDraggable === 'imageRotateDesktop') {
+                else if (activeDraggable === 'text') {
+                    const item = state.textItems.find(i => i.id === activeTextId);
+                    if (item) {
+                        item.x = newX;
+                        item.y = newY;
+                    }
+                } else if (activeDraggable === 'imageRotateDesktop') {
                     state.imageRotation = imageRotateStart + (clientX - dragOffset.x) * 0.5;
                 }
 
@@ -843,6 +995,10 @@
                 state.shapeOffset = { x: 0, y: 0 };
                 state.baseOffset = { x: 0, y: 0 };
                 state.imageOffset = { x: 0, y: 0 };
+                state.textItems.forEach(item => {
+                    item.x = 0;
+                    item.y = 0;
+                });
                 renderCanvas();
             });
         }
@@ -1064,7 +1220,96 @@
                 imgC.style.maskImage = 'none';
             }
 
+            renderTextItemsDOM();
             document.getElementById('main-canvas-area').style.backgroundColor = hslToHex(state.canvasColor.h, state.canvasColor.s, state.canvasColor.l);
+        }
+
+        function getTextColorHex(color) {
+            return hslToHex(color.h, color.s, color.l);
+        }
+
+        function renderTextItemsDOM() {
+            const layer = document.getElementById('text-items-layer');
+            if (!layer) return;
+            const existingIds = state.textItems.map(item => item.id.toString());
+
+            state.textItems.forEach(item => {
+                if (!item.el) {
+                    const el = document.createElement('div');
+                    el.className = 'text-item';
+                    el.contentEditable = 'false';
+                    el.dataset.id = item.id;
+                    el.tabIndex = 0;
+                    el.style.pointerEvents = 'auto';
+                    el.style.transform = 'translate(-50%, -50%)';
+
+                    const contentEl = document.createElement('div');
+                    contentEl.className = 'text-content';
+                    contentEl.contentEditable = 'true';
+                    contentEl.style.whiteSpace = 'pre-wrap';
+                    contentEl.style.pointerEvents = 'auto';
+                    contentEl.innerText = item.text;
+
+                    const handle = document.createElement('div');
+                    handle.className = 'drag-handle';
+                    handle.textContent = '⠿';
+                    handle.contentEditable = 'false';
+
+                    el.appendChild(contentEl);
+                    el.appendChild(handle);
+
+                    el.addEventListener('input', () => {
+                        item.text = contentEl.innerText.trim();
+                    });
+                    el.addEventListener('blur', () => {
+                        item.text = contentEl.innerText.trim();
+                    });
+                    el.addEventListener('keydown', e => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            addTextItem();
+                        }
+                    });
+
+                    handle.addEventListener('mousedown', e => startDragText(e, item.id));
+                    handle.addEventListener('touchstart', e => startDragText(e, item.id), {passive: false});
+
+                    layer.appendChild(el);
+                    item.el = el;
+                }
+
+                const el = item.el;
+                const contentEl = el.querySelector('.text-content');
+                el.style.left = `calc(50% + ${item.x}px)`;
+                el.style.top = `calc(50% + ${item.y}px)`;
+                el.style.fontFamily = item.font;
+                el.style.fontWeight = item.weight;
+                el.style.fontSize = item.size + 'px';
+                el.style.color = getTextColorHex(item.color);
+                el.style.background = 'rgba(255,255,255,0.85)';
+                el.style.borderColor = document.activeElement === el || el.contains(document.activeElement) ? '#2563eb' : 'rgba(148,163,184,0.7)';
+                if (contentEl && contentEl.innerText !== item.text) contentEl.innerText = item.text;
+            });
+
+            Array.from(layer.children).forEach(child => {
+                if (!existingIds.includes(child.dataset.id)) {
+                    layer.removeChild(child);
+                }
+            });
+        }
+
+        let activeTextId = null;
+        function startDragText(e, itemId) {
+            activeDraggable = 'text';
+            activeTextId = itemId;
+            const clientX = e.clientX || e.touches[0].clientX;
+            const clientY = e.clientY || e.touches[0].clientY;
+            const item = state.textItems.find(i => i.id === itemId);
+            if (!item) return;
+            dragOffset.x = clientX - item.x;
+            dragOffset.y = clientY - item.y;
+            document.getElementById('art-container').style.cursor = 'grabbing';
+            e.stopPropagation();
         }
 
         function randomizeShapeColor() {
@@ -1204,59 +1449,68 @@
             canvas.width = 1500;
             canvas.height = 1500;
             const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, 1500, 1500);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Desenha o fundo do canvas como aparece na tela
+            ctx.fillStyle = hslToHex(state.canvasColor.h, state.canvasColor.s, state.canvasColor.l);
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const container = document.getElementById('art-container');
+            const rect = container.getBoundingClientRect();
+            const scale = canvas.width / rect.width;
+            const center = canvas.width / 2;
+            const baseSize = rect.width * (state.baseScale / 100) * scale;
+            const shapeRadius = rect.width * 0.4 * scale;
+            const imgSize = rect.width * 0.75 * scale;
+            const roundedRadius = Math.min(baseSize * 0.08, 120);
 
             if (state.baseVisible) {
                 ctx.save();
-                ctx.translate(750 + (state.baseOffset.x * 3.5), 750 + (state.baseOffset.y * 3.5));
-                const size = (state.baseScale / 100) * 1100;
+                ctx.translate(center + (state.baseOffset.x * scale), center + (state.baseOffset.y * scale));
                 ctx.fillStyle = hslToHex(state.baseColor.h, state.baseColor.s, state.baseColor.l);
                 ctx.beginPath();
-                if (state.baseType === 'circle') ctx.arc(0, 0, size / 2, 0, Math.PI * 2);
-                else if (state.baseType === 'rounded') ctx.roundRect(-size/2, -size/2, size, size, 80);
-                else ctx.rect(-size/2, -size/2, size, size);
+                if (state.baseType === 'circle') ctx.arc(0, 0, baseSize / 2, 0, Math.PI * 2);
+                else if (state.baseType === 'rounded') ctx.roundRect(-baseSize / 2, -baseSize / 2, baseSize, baseSize, roundedRadius);
+                else ctx.rect(-baseSize / 2, -baseSize / 2, baseSize, baseSize);
                 ctx.fill();
                 ctx.restore();
             }
 
             ctx.save();
-            ctx.translate(750 + (state.shapeOffset.x * 3.5), 750 + (state.shapeOffset.y * 3.5));
+            ctx.translate(center + (state.shapeOffset.x * scale), center + (state.shapeOffset.y * scale));
             if (state.shapeType === 'circle') {
                 ctx.scale(state.ellipseX / 100, state.ellipseY / 100);
             } else {
                 ctx.rotate((state.shapeRotation * Math.PI) / 180);
-                const sc = state.shapeScale / 100;
-                ctx.scale(sc, sc);
+                ctx.scale(state.shapeScale / 100, state.shapeScale / 100);
             }
-            
+
             ctx.fillStyle = hslToHex(state.shapeColor.h, state.shapeColor.s, state.shapeColor.l);
             ctx.beginPath();
-            
             if (state.shapeType === 'circle') {
-                ctx.arc(0, 0, 600, 0, Math.PI * 2);
+                ctx.arc(0, 0, shapeRadius, 0, Math.PI * 2);
             } else {
                 const points = state.shapePoints;
                 const count = (state.shapeType === 'polygon') ? points : points * 2;
                 for (let i = 0; i < count; i++) {
                     const angle = (i / count) * 2 * Math.PI - Math.PI / 2;
-                    let r = 600;
-                    if (state.shapeType === 'star' && i % 2 !== 0) r = 264;
-                    else if (state.shapeType === 'concave' && i % 2 !== 0) r = 96;
+                    let r = shapeRadius;
+                    if (state.shapeType === 'star' && i % 2 !== 0) r = shapeRadius * 0.44;
+                    else if (state.shapeType === 'concave' && i % 2 !== 0) r = shapeRadius * 0.16;
                     else if (state.shapeType === 'irregular') {
-                        r = (state.irregularRadii[i] || 35) * 12;
+                        r = shapeRadius * ((state.irregularRadii[i] || 35) / 50);
                         const x = r * Math.cos(angle);
                         const y = r * Math.sin(angle);
-                        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                        if (i === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
                         continue;
-                    }
-                    else if (state.shapeType === 'complex') {
-                        // Mesma lógica de cruzamento brutal garantindo renderização idêntica no PNG
+                    } else if (state.shapeType === 'complex') {
                         const chaoticAngle = angle + (i % 2 === 0 ? 1.8 : -1.8);
-                        r = (state.irregularRadii[i] || 35) * 12; 
-                        
+                        r = shapeRadius * ((state.irregularRadii[i] || 35) / 50);
                         const x = r * Math.cos(chaoticAngle);
                         const y = r * Math.sin(chaoticAngle);
-                        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                        if (i === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
                         continue;
                     }
                     const x = r * Math.cos(angle);
@@ -1271,34 +1525,44 @@
 
             const currentArt = arts[state.artIndex];
             const img = new Image();
-            img.crossOrigin = "anonymous";
             img.src = currentArt.file;
 
             img.onload = () => {
-                // Desenha a Imagem (PNG) na posição calculada
                 ctx.save();
-                ctx.translate(750 + (state.imageOffset.x * 3.5), 750 + (state.imageOffset.y * 3.5));
-                const imgSize = 1500 * 0.75; 
-                
-                    if (currentArt.group > 1 && state.imageFill) {
-                    // Preenchimento customizado com máscara da imagem
+                ctx.translate(center + (state.imageOffset.x * scale), center + (state.imageOffset.y * scale));
+                if (currentArt.group > 1 && state.imageFill) {
                     ctx.fillStyle = hslToHex(state.imageColor.h, state.imageColor.s, state.imageColor.l);
-                    ctx.fillRect(-imgSize/2, -imgSize/2, imgSize, imgSize);
+                    ctx.fillRect(-imgSize / 2, -imgSize / 2, imgSize, imgSize);
                     ctx.globalCompositeOperation = 'destination-in';
-                    ctx.drawImage(img, -imgSize/2, -imgSize/2, imgSize, imgSize);
+                    ctx.drawImage(img, -imgSize / 2, -imgSize / 2, imgSize, imgSize);
                     ctx.globalCompositeOperation = 'source-over';
                 } else {
-                    // Arte normal ou vazada original
-                    ctx.drawImage(img, -imgSize/2, -imgSize/2, imgSize, imgSize);
+                    ctx.drawImage(img, -imgSize / 2, -imgSize / 2, imgSize, imgSize);
                 }
                 ctx.restore();
 
-                // Camada de Ruído (Noise)
+                if (state.textItems.length > 0) {
+                    ctx.save();
+                    ctx.translate(center, center);
+                    state.textItems.forEach(item => {
+                        ctx.font = `${item.weight} ${item.size}px ${item.font}`;
+                        ctx.fillStyle = getTextColorHex(item.color);
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        const lines = item.text.split('\n');
+                        const lineHeight = item.size * 1.1;
+                        lines.forEach((line, index) => {
+                            ctx.fillText(line, item.x, item.y + (index - (lines.length - 1) / 2) * lineHeight);
+                        });
+                    });
+                    ctx.restore();
+                }
+
                 ctx.save();
                 ctx.globalAlpha = 0.20;
                 ctx.globalCompositeOperation = 'source-atop';
-                for (let x = 0; x < 1500; x += 3) {
-                    for (let y = 0; y < 1500; y += 3) {
+                for (let x = 0; x < canvas.width; x += 3) {
+                    for (let y = 0; y < canvas.height; y += 3) {
                         if (Math.random() > 0.5) {
                             ctx.fillStyle = Math.random() > 0.5 ? '#fff' : '#000';
                             ctx.fillRect(x, y, 2, 2);
