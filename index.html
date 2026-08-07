@@ -83,20 +83,55 @@
 
         .text-item {
             position: absolute;
-            min-width: 64px;
+            min-width: 90px;
             max-width: none;
-            padding: 8px 0;
+            width: auto;
+            padding: 0;
             white-space: pre-wrap;
             word-break: break-word;
-            cursor: move;
-            user-select: text;
-            background: transparent;
-            border: 1px solid rgba(148,163,184,0.25);
-            border-radius: 26px;
+            cursor: grab;
+            user-select: none;
+            background: rgba(255,255,255,0.16);
+            border: 1px solid rgba(148,163,184,0.22);
+            border-radius: 32px;
             line-height: 1.1;
             color: #111827;
-            transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+            transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
             overflow: visible;
+            box-shadow: 0 18px 45px rgba(15,23,42,0.08);
+            backdrop-filter: blur(10px);
+        }
+
+        .text-item:hover {
+            background: rgba(255,255,255,0.22);
+        }
+
+        .text-item .drag-handle,
+        .text-item .resize-handle {
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            border-radius: 999px;
+            background: rgba(15,23,42,0.86);
+            color: white;
+            display: grid;
+            place-items: center;
+            cursor: grab;
+            border: 1px solid rgba(255,255,255,0.18);
+            box-shadow: 0 12px 24px rgba(15,23,42,0.12);
+            z-index: 25;
+        }
+
+        .text-item .drag-handle {
+            top: -16px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .text-item .resize-handle {
+            right: -14px;
+            bottom: -14px;
+            cursor: nwse-resize;
         }
 
         .text-item.selected {
@@ -153,6 +188,23 @@
             height: 28px;
             display: grid;
             place-items: center;
+        }
+
+        .text-item .resize-handle {
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            border-radius: 999px;
+            background: rgba(15,23,42,0.86);
+            color: white;
+            display: grid;
+            place-items: center;
+            cursor: nwse-resize;
+            border: 1px solid rgba(255,255,255,0.18);
+            box-shadow: 0 12px 24px rgba(15,23,42,0.12);
+            z-index: 25;
+            right: -14px;
+            bottom: -14px;
         }
 
         .text-item .text-toolbar button:hover,
@@ -800,7 +852,9 @@
                 font: state.textFont,
                 weight: state.textWeight,
                 size: state.textSize,
+                width: 220,
                 color: { ...state.textColor },
+                rotation: 0,
                 el: null
             };
             state.textItems.push(item);
@@ -998,6 +1052,13 @@
                         item.x = newX;
                         item.y = newY;
                     }
+                } else if (activeDraggable === 'resize') {
+                    const item = state.textItems.find(i => i.id === activeTextId);
+                    if (item) {
+                        const deltaX = newX - dragOffset.x;
+                        item.width = Math.max(100, Math.min(420, dragOffset.width + deltaX));
+                        item.size = Math.max(12, Math.min(120, dragOffset.size + deltaX * 0.05));
+                    }
                 } else if (activeDraggable === 'imageRotateDesktop') {
                     state.imageRotation = imageRotateStart + (clientX - dragOffset.x) * 0.5;
                 }
@@ -1013,9 +1074,12 @@
 
             window.addEventListener('mousemove', onMove, {passive: false});
             window.addEventListener('touchmove', onMove, {passive: false});
+            window.addEventListener('pointermove', onMove, {passive: false});
             window.addEventListener('mouseup', endDrag);
             window.addEventListener('touchend', endDrag);
+            window.addEventListener('pointerup', endDrag);
             window.addEventListener('touchcancel', endDrag);
+            window.addEventListener('pointercancel', endDrag);
 
             container.addEventListener('dblclick', () => {
                 state.shapeOffset = { x: 0, y: 0 };
@@ -1273,9 +1337,13 @@
                     contentEl.contentEditable = 'true';
                     contentEl.style.whiteSpace = 'pre-wrap';
                     contentEl.style.pointerEvents = 'auto';
+                    contentEl.style.touchAction = 'manipulation';
                     contentEl.style.minWidth = '90px';
-                    contentEl.style.maxWidth = '260px';
+                    contentEl.style.maxWidth = '100%';
+                    contentEl.style.width = '100%';
+                    contentEl.style.boxSizing = 'border-box';
                     contentEl.style.textAlign = 'center';
+                    contentEl.style.padding = '14px 16px';
                     contentEl.innerText = item.text;
 
                     const toolbar = document.createElement('div');
@@ -1283,20 +1351,31 @@
                     toolbar.innerHTML = `
                         <button type="button" class="toolbar-size-minus" title="Diminuir">A-</button>
                         <button type="button" class="toolbar-size-plus" title="Aumentar">A+</button>
-                        <button type="button" class="toolbar-weight-toggle" title="Tamanho">W</button>
+                        <button type="button" class="toolbar-width-minus" title="Estreitar">⇤</button>
+                        <button type="button" class="toolbar-width-plus" title="Alargar">⇥</button>
+                        <button type="button" class="toolbar-weight-toggle" title="Peso">W</button>
                         <button type="button" class="toolbar-font-toggle" title="Fonte">F</button>
+                        <button type="button" class="toolbar-rotate" title="Girar">⟳</button>
+                        <button type="button" class="toolbar-reset" title="Resetar">↺</button>
                         <input type="color" class="toolbar-color" value="${getTextColorHex(item.color)}" title="Cor" />
                         <button type="button" class="toolbar-delete" title="Excluir">✕</button>
                     `;
 
                     const handle = document.createElement('div');
                     handle.className = 'drag-handle';
-                    handle.textContent = '⠿';
+                    handle.innerHTML = '⠿';
                     handle.contentEditable = 'false';
+
+                    const resizeHandle = document.createElement('div');
+                    resizeHandle.className = 'resize-handle';
+                    resizeHandle.innerHTML = '↔';
+                    resizeHandle.contentEditable = 'false';
 
                     el.appendChild(toolbar);
                     el.appendChild(contentEl);
                     el.appendChild(handle);
+                    el.appendChild(resizeHandle);
+                    el.style.touchAction = 'none';
 
                     contentEl.addEventListener('input', () => {
                         item.text = contentEl.innerText;
@@ -1307,13 +1386,13 @@
                     });
 
                     el.addEventListener('mousedown', e => {
-                        if (e.target.closest('.text-toolbar') || e.target === contentEl) return;
+                        if (e.target.closest('.text-toolbar') || e.target === contentEl || e.target === resizeHandle) return;
                         startDragText(e, item.id);
                     });
                     el.addEventListener('touchstart', e => {
-                        if (e.target.closest('.text-toolbar') || e.target === contentEl) return;
+                        if (e.target.closest('.text-toolbar') || e.target === contentEl || e.target === resizeHandle) return;
                         startDragText(e, item.id);
-                    }, { passive: false });
+                    }, {passive: false});
 
                     el.addEventListener('click', e => {
                         e.stopPropagation();
@@ -1322,6 +1401,8 @@
 
                     handle.addEventListener('mousedown', e => startDragText(e, item.id));
                     handle.addEventListener('touchstart', e => startDragText(e, item.id), {passive: false});
+                    resizeHandle.addEventListener('mousedown', e => startResizeText(e, item.id));
+                    resizeHandle.addEventListener('touchstart', e => startResizeText(e, item.id), {passive: false});
 
                     toolbar.querySelector('.toolbar-size-minus').addEventListener('click', e => {
                         e.stopPropagation();
@@ -1331,6 +1412,28 @@
                     toolbar.querySelector('.toolbar-size-plus').addEventListener('click', e => {
                         e.stopPropagation();
                         item.size = Math.min(120, item.size + 2);
+                        renderCanvas();
+                    });
+                    toolbar.querySelector('.toolbar-width-minus').addEventListener('click', e => {
+                        e.stopPropagation();
+                        item.width = Math.max(100, item.width - 20);
+                        renderCanvas();
+                    });
+                    toolbar.querySelector('.toolbar-width-plus').addEventListener('click', e => {
+                        e.stopPropagation();
+                        item.width = Math.min(420, item.width + 20);
+                        renderCanvas();
+                    });
+                    toolbar.querySelector('.toolbar-rotate').addEventListener('click', e => {
+                        e.stopPropagation();
+                        item.rotation = (item.rotation + 15) % 360;
+                        renderCanvas();
+                    });
+                    toolbar.querySelector('.toolbar-reset').addEventListener('click', e => {
+                        e.stopPropagation();
+                        item.width = 220;
+                        item.rotation = 0;
+                        item.size = state.textSize;
                         renderCanvas();
                     });
                     toolbar.querySelector('.toolbar-weight-toggle').addEventListener('click', e => {
@@ -1366,12 +1469,15 @@
                 const contentEl = el.querySelector('.text-content');
                 el.style.left = `calc(50% + ${item.x}px)`;
                 el.style.top = `calc(50% + ${item.y}px)`;
+                el.style.width = item.width + 'px';
+                el.style.transform = `translate(-50%, -50%) rotate(${item.rotation}deg)`;
                 el.style.fontFamily = item.font;
                 el.style.fontWeight = item.weight;
                 el.style.fontSize = item.size + 'px';
                 el.style.color = getTextColorHex(item.color);
                 el.style.cursor = 'grab';
                 contentEl.style.cursor = 'text';
+                contentEl.style.width = '100%';
                 el.classList.toggle('selected', activeTextId === item.id);
                 if (contentEl && contentEl.innerText !== item.text) contentEl.innerText = item.text;
                 const toolbar = el.querySelector('.text-toolbar');
@@ -1394,11 +1500,30 @@
             activeTextId = itemId;
             const clientX = e.clientX || e.touches[0].clientX;
             const clientY = e.clientY || e.touches[0].clientY;
+            const pos = getContainerRelativePosition(clientX, clientY);
             const item = state.textItems.find(i => i.id === itemId);
             if (!item) return;
-            dragOffset.x = clientX - item.x;
-            dragOffset.y = clientY - item.y;
+            dragOffset.x = pos.x - item.x;
+            dragOffset.y = pos.y - item.y;
             document.getElementById('art-container').style.cursor = 'grabbing';
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function startResizeText(e, itemId) {
+            activeDraggable = 'resize';
+            activeTextId = itemId;
+            const clientX = e.clientX || e.touches[0].clientX;
+            const clientY = e.clientY || e.touches[0].clientY;
+            const pos = getContainerRelativePosition(clientX, clientY);
+            const item = state.textItems.find(i => i.id === itemId);
+            if (!item) return;
+            dragOffset.x = pos.x;
+            dragOffset.y = pos.y;
+            dragOffset.width = item.width;
+            dragOffset.size = item.size;
+            document.getElementById('art-container').style.cursor = 'nwse-resize';
+            e.preventDefault();
             e.stopPropagation();
         }
 
@@ -1534,14 +1659,13 @@
             document.documentElement.classList.toggle('dark');
         }
 
-        function downloadImage() {
+        async function downloadImage() {
             const canvas = document.createElement('canvas');
             canvas.width = 1500;
             canvas.height = 1500;
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Desenha o fundo do canvas como aparece na tela
             ctx.fillStyle = hslToHex(state.canvasColor.h, state.canvasColor.s, state.canvasColor.l);
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -1614,47 +1738,64 @@
             ctx.restore();
 
             const currentArt = arts[state.artIndex];
-            const img = new Image();
-            img.onload = () => {
-                ctx.imageSmoothingEnabled = true;
-                ctx.imageSmoothingQuality = 'high';
-                ctx.save();
-                ctx.translate(center + (state.imageOffset.x * scale), center + (state.imageOffset.y * scale));
-                if (currentArt.group > 1 && state.imageFill) {
-                    ctx.fillStyle = hslToHex(state.imageColor.h, state.imageColor.s, state.imageColor.l);
-                    ctx.fillRect(-imgSize / 2, -imgSize / 2, imgSize, imgSize);
-                    ctx.globalCompositeOperation = 'destination-in';
-                    ctx.drawImage(img, -imgSize / 2, -imgSize / 2, imgSize, imgSize);
-                    ctx.globalCompositeOperation = 'source-over';
-                } else {
-                    ctx.drawImage(img, -imgSize / 2, -imgSize / 2, imgSize, imgSize);
-                }
-                ctx.restore();
+            const artCanvas = await createArtCanvas(currentArt, imgSize);
+            ctx.save();
+            ctx.translate(center + (state.imageOffset.x * scale), center + (state.imageOffset.y * scale));
+            ctx.rotate((state.imageRotation * Math.PI) / 180);
+            ctx.scale(state.imageFlip || 1, 1);
+            ctx.drawImage(artCanvas, -imgSize / 2, -imgSize / 2, imgSize, imgSize);
+            ctx.restore();
 
-                if (state.textItems.length > 0) {
+            if (state.textItems.length > 0) {
+                ctx.save();
+                ctx.translate(center, center);
+                state.textItems.forEach(item => {
+                    const scaledSize = item.size * scale;
+                    const scaledWidth = item.width * scale;
                     ctx.save();
-                    ctx.translate(center, center);
-                    state.textItems.forEach(item => {
-                        const scaledSize = item.size * scale;
-                        ctx.font = `${item.weight} ${scaledSize}px ${item.font}`;
-                        ctx.fillStyle = getTextColorHex(item.color);
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        const lines = item.text.split('\n');
-                        const lineHeight = scaledSize * 1.1;
-                        lines.forEach((line, index) => {
-                            ctx.fillText(line, item.x * scale, item.y * scale + (index - (lines.length - 1) / 2) * lineHeight);
-                        });
+                    ctx.translate(item.x * scale, item.y * scale);
+                    ctx.rotate((item.rotation || 0) * Math.PI / 180);
+                    ctx.font = `${item.weight} ${scaledSize}px ${item.font}`;
+                    ctx.fillStyle = getTextColorHex(item.color);
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    const lines = item.text.split('\n');
+                    const lineHeight = scaledSize * 1.1;
+                    lines.forEach((line, index) => {
+                        ctx.fillText(line, 0, (index - (lines.length - 1) / 2) * lineHeight, scaledWidth);
                     });
                     ctx.restore();
-                }
+                });
+                ctx.restore();
+            }
 
-                const link = document.createElement('a');
-                link.download = `Rinoceronte_Branco_${Date.now()}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-            };
-            img.src = currentArt.file;
+            const link = document.createElement('a');
+            link.download = `Rinoceronte_Branco_${Date.now()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function createArtCanvas(currentArt, imgSize) {
+            return new Promise(resolve => {
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = imgSize;
+                tempCanvas.height = imgSize;
+                const tempCtx = tempCanvas.getContext('2d');
+                const img = new Image();
+                img.onload = () => {
+                    if (currentArt.group > 1 && state.imageFill) {
+                        tempCtx.fillStyle = hslToHex(state.imageColor.h, state.imageColor.s, state.imageColor.l);
+                        tempCtx.fillRect(0, 0, imgSize, imgSize);
+                        tempCtx.globalCompositeOperation = 'destination-in';
+                        tempCtx.drawImage(img, 0, 0, imgSize, imgSize);
+                        tempCtx.globalCompositeOperation = 'source-over';
+                    } else {
+                        tempCtx.drawImage(img, 0, 0, imgSize, imgSize);
+                    }
+                    resolve(tempCanvas);
+                };
+                img.src = currentArt.file;
+            });
         }
 
         window.onload = initApp;
