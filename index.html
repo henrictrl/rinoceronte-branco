@@ -77,6 +77,16 @@
             touch-action: none;
         }
 
+        #art-base,
+        #art-shape,
+        #art-image {
+            pointer-events: auto;
+        }
+
+        #art-base { z-index: 5; }
+        #art-shape { z-index: 10; }
+        #art-image { z-index: 15; }
+
         #art-container {
             overflow: visible;
         }
@@ -450,6 +460,31 @@
                         <input type="range" id="img-lig-slider" min="0" max="100" value="100">
                     </div>
                 </div>
+                <div class="grid grid-cols-2 gap-4 pt-4">
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 font-medium">
+                            <span>Tamanho</span>
+                            <span id="img-scale-val">100%</span>
+                        </div>
+                        <input type="range" id="img-scale-slider" min="50" max="200" value="100">
+                    </div>
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 font-medium">
+                            <span>Rotação</span>
+                            <span id="img-rotation-val">0°</span>
+                        </div>
+                        <input type="range" id="img-rotation-slider" min="-180" max="180" value="0">
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 pt-4 flex-wrap">
+                    <button id="img-mirror-btn" type="button" class="px-4 py-2 rounded-lg bg-gray-100 dark:bg-slate-900 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-slate-700 hover:bg-gray-200 dark:hover:bg-slate-700 transition">
+                        Espelhar
+                    </button>
+                    <button id="img-reset-btn" type="button" class="px-4 py-2 rounded-lg bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition">
+                        Resetar imagem
+                    </button>
+                    <span class="text-xs text-gray-500 dark:text-gray-400 w-full md:w-auto">ou duplo clique na imagem</span>
+                </div>
             </div>
 
             <!-- SEÇÃO 5: Texto removida para edição inline no canvas -->
@@ -563,9 +598,6 @@
             <!-- PNG da Arte (Frente) -->
             <div id="art-image" class="absolute w-[75%] h-[75%] bg-contain bg-center bg-no-repeat drop-shadow-sm cursor-grab active:cursor-grabbing hover:drop-shadow-md transition-shadow"></div>
         </div>
-        <button id="add-text-btn" type="button" class="absolute bottom-4 right-4 z-20 px-4 py-2 rounded-full bg-slate-900 text-white text-xs font-semibold shadow-xl shadow-slate-900/15 hover:bg-slate-800 transition">
-            + Texto
-        </button>
     </main>
 
     <!-- MODAL DE TUTORIAL -->
@@ -714,6 +746,7 @@
             shapeColor: { h: 15, s: 85, l: 55 },
             imageColor: { h: 0, s: 0, l: 100 },
             imageFill: true,
+            imageScale: 100,
             textItems: [],
             textFont: 'Montserrat',
             textWeight: '600',
@@ -827,7 +860,6 @@
             setupColorBinding(document.getElementById('canvas-hue-slider'), document.getElementById('canvas-sat-slider'), document.getElementById('canvas-lig-slider'), document.getElementById('canvas-hex-input'), 'canvasColor');
             setupColorBinding(document.getElementById('base-hue-slider'), document.getElementById('base-sat-slider'), document.getElementById('base-lig-slider'), document.getElementById('base-hex-input'), 'baseColor');
 
-            setupTextListeners();
             setupEventListeners();
             setupDragAndDrop();
             
@@ -915,13 +947,26 @@
                 renderCanvas();
             });
 
-            document.getElementById('add-text-btn').addEventListener('click', () => addTextItem());
+            document.getElementById('img-scale-slider').addEventListener('input', e => {
+                state.imageScale = parseInt(e.target.value);
+                document.getElementById('img-scale-val').textContent = state.imageScale + '%';
+                renderCanvas();
+            });
 
-            document.addEventListener('click', e => {
-                if (!e.target.closest('.text-item')) {
-                    activeTextId = null;
-                    renderTextItemsDOM();
-                }
+            document.getElementById('img-rotation-slider').addEventListener('input', e => {
+                state.imageRotation = parseInt(e.target.value);
+                document.getElementById('img-rotation-val').textContent = state.imageRotation + '°';
+                renderCanvas();
+            });
+
+            document.getElementById('img-mirror-btn').addEventListener('click', e => {
+                e.preventDefault();
+                toggleImageFlip();
+            });
+
+            document.getElementById('img-reset-btn').addEventListener('click', e => {
+                e.preventDefault();
+                resetImageTransform();
             });
 
             document.getElementById('base-visible-toggle').addEventListener('change', e => {
@@ -961,14 +1006,16 @@
             if (!textLayer) {
                 textLayer = document.createElement('div');
                 textLayer.id = 'text-items-layer';
-                textLayer.className = 'absolute inset-0';
+                textLayer.className = 'absolute inset-0 pointer-events-none';
                 container.appendChild(textLayer);
             }
 
             const startDrag = (e, targetName) => {
+                e.preventDefault();
+                e.stopPropagation();
                 activeDraggable = targetName;
-                const clientX = e.clientX || e.touches[0].clientX;
-                const clientY = e.clientY || e.touches[0].clientY;
+                const clientX = e.clientX || (e.touches ? e.touches[0].clientX : 0);
+                const clientY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
                 const pos = getContainerRelativePosition(clientX, clientY);
 
                 let currentOffset = state.imageOffset;
@@ -982,15 +1029,25 @@
                 dragOffset.x = pos.x - currentOffset.x;
                 dragOffset.y = pos.y - currentOffset.y;
                 container.style.cursor = 'grabbing';
-                e.stopPropagation();
+                if (e.pointerId) e.target.setPointerCapture(e.pointerId);
             };
 
+            shapeC.addEventListener('pointerdown', e => startDrag(e, 'shape'));
             shapeC.addEventListener('mousedown', e => startDrag(e, 'shape'));
             shapeC.addEventListener('touchstart', e => startDrag(e, 'shape'), {passive: false});
+
+            baseC.addEventListener('pointerdown', e => startDrag(e, 'base'));
             baseC.addEventListener('mousedown', e => startDrag(e, 'base'));
             baseC.addEventListener('touchstart', e => startDrag(e, 'base'), {passive: false});
-            
+
             imgC.style.pointerEvents = 'auto';
+            imgC.addEventListener('pointerdown', e => {
+                if (e.pointerType === 'mouse' && (e.shiftKey || e.altKey)) {
+                    startRotateDesktop(e);
+                } else {
+                    startDrag(e, 'image');
+                }
+            });
             imgC.addEventListener('mousedown', e => {
                 if (e.shiftKey || e.altKey) startRotateDesktop(e);
                 else startDrag(e, 'image');
@@ -1072,13 +1129,8 @@
                 container.style.cursor = 'grab';
             };
 
-            window.addEventListener('mousemove', onMove, {passive: false});
-            window.addEventListener('touchmove', onMove, {passive: false});
             window.addEventListener('pointermove', onMove, {passive: false});
-            window.addEventListener('mouseup', endDrag);
-            window.addEventListener('touchend', endDrag);
             window.addEventListener('pointerup', endDrag);
-            window.addEventListener('touchcancel', endDrag);
             window.addEventListener('pointercancel', endDrag);
 
             container.addEventListener('dblclick', () => {
@@ -1096,6 +1148,16 @@
         function toggleImageFlip() {
             state.imageFlip = state.imageFlip === 1 ? -1 : 1;
             renderCanvas();
+            const mirrorBtn = document.getElementById('img-mirror-btn');
+            if (mirrorBtn) mirrorBtn.textContent = state.imageFlip === 1 ? 'Espelhar' : 'Normal';
+        }
+
+        function resetImageTransform() {
+            state.imageScale = 100;
+            state.imageRotation = 0;
+            state.imageFlip = 1;
+            renderCanvas();
+            syncDOMWithState();
         }
 
         function setShapeType(type) {
@@ -1240,6 +1302,14 @@
             document.getElementById('sat-slider').value = state.shapeColor.s;
             document.getElementById('lig-slider').value = state.shapeColor.l;
             document.getElementById('shape-hex-input').value = hslToHex(state.shapeColor.h, state.shapeColor.s, state.shapeColor.l);
+            document.getElementById('img-scale-slider').value = state.imageScale;
+            document.getElementById('img-scale-val').textContent = state.imageScale + '%';
+            document.getElementById('img-rotation-slider').value = state.imageRotation;
+            document.getElementById('img-rotation-val').textContent = state.imageRotation + '°';
+            const mirrorBtn = document.getElementById('img-mirror-btn');
+            if (mirrorBtn) mirrorBtn.textContent = state.imageFlip === 1 ? 'Espelhar' : 'Normal';
+            const resetBtn = document.getElementById('img-reset-btn');
+            if (resetBtn) resetBtn.disabled = state.imageScale === 100 && state.imageRotation === 0 && state.imageFlip === 1;
 
             if (state.shapeType === 'circle') {
                 document.getElementById('points-wrapper').classList.add('hidden');
@@ -1286,7 +1356,7 @@
             }
 
             const currentArt = arts[state.artIndex];
-            imgC.style.transform = `translate(${state.imageOffset.x}px, ${state.imageOffset.y}px) rotate(${state.imageRotation}deg) scaleX(${state.imageFlip})`;
+            imgC.style.transform = `translate(${state.imageOffset.x}px, ${state.imageOffset.y}px) rotate(${state.imageRotation}deg) scale(${(state.imageScale / 100) * state.imageFlip}, ${state.imageScale / 100})`;
             imgC.style.transformOrigin = 'center';
             imgC.style.backgroundPosition = 'center';
             imgC.style.backgroundSize = 'contain';
@@ -1310,7 +1380,6 @@
                 imgC.style.maskImage = 'none';
             }
 
-            renderTextItemsDOM();
             document.getElementById('main-canvas-area').style.backgroundColor = hslToHex(state.canvasColor.h, state.canvasColor.s, state.canvasColor.l);
         }
 
@@ -1742,7 +1811,7 @@
             ctx.save();
             ctx.translate(center + (state.imageOffset.x * scale), center + (state.imageOffset.y * scale));
             ctx.rotate((state.imageRotation * Math.PI) / 180);
-            ctx.scale(state.imageFlip || 1, 1);
+            ctx.scale((state.imageFlip || 1) * (state.imageScale / 100), state.imageScale / 100);
             ctx.drawImage(artCanvas, -imgSize / 2, -imgSize / 2, imgSize, imgSize);
             ctx.restore();
 
