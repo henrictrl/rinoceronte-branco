@@ -91,6 +91,32 @@
             overflow: visible;
         }
 
+        #art-container::before {
+            content: 'Área de recorte';
+            position: absolute;
+            top: 0.75rem;
+            left: 0.75rem;
+            color: rgba(15, 23, 42, 0.45);
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            background: rgba(255, 255, 255, 0.72);
+            padding: 0.15rem 0.5rem;
+            border-radius: 999px;
+            pointer-events: none;
+            z-index: 30;
+        }
+
+        #art-container::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border: 1px dashed rgba(15, 23, 42, 0.15);
+            pointer-events: none;
+            z-index: 30;
+        }
+
         .text-item {
             position: absolute;
             min-width: 90px;
