@@ -92,7 +92,7 @@
 </head>
 <body class="h-[100dvh] w-screen overflow-hidden flex flex-col md:flex-row bg-[#f4f3ef] dark:bg-slate-900 dark:text-gray-100 transition-colors relative">
 
-    <aside class="order-2 md:order-1 w-full md:w-[450px] bg-white dark:bg-slate-800 border-r border-gray-200 dark:border-slate-700 h-[55%] md:h-full overflow-y-auto flex flex-col shadow-md z-20 relative">
+    <aside class="order-2 md:order-1 w-full md:w-[450px] bg-white dark:bg-slate-800 border-r border-gray-200 dark:border-slate-700 h-[55%] md:h-full flex flex-col shadow-md z-20 relative overflow-hidden">
         <div class="p-6 border-b border-gray-100 dark:border-slate-700 flex-shrink-0 flex justify-between items-center">
             <div>
                 <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
@@ -101,8 +101,9 @@
             </div>
             <div class="flex items-center gap-2">
                 <!-- Botão Tutorial -->
-                <button onclick="openTutorial()" class="p-2.5 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:scale-105 transition" title="Como usar">
-                    <i data-feather="help-circle" class="w-4 h-4"></i>
+                <button onclick="openTutorial()" class="relative px-4 py-1.5 rounded-full bg-indigo-600 text-white text-[11px] font-bold uppercase tracking-wider hover:bg-indigo-700 hover:scale-105 transition-all shadow-[0_0_12px_rgba(79,70,229,0.5)] flex items-center justify-center" title="Ver Tutorial">
+                    <span class="relative z-10">Tutorial</span>
+                    <span class="absolute inset-0 rounded-full bg-indigo-500 animate-ping opacity-30 pointer-events-none"></span>
                 </button>
                 <!-- Botão Modo Noturno -->
                 <button onclick="toggleDarkMode()" class="p-2.5 rounded-full bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-yellow-400 hover:scale-105 transition" title="Alternar Modo Noturno">
@@ -112,7 +113,7 @@
             </div>
         </div>
 
-        <div class="p-6 space-y-8 flex-grow">
+        <div class="p-6 space-y-8 flex-grow overflow-y-auto">
             
             <!-- SEÇÃO 1: Seleção de Arte -->
             <div class="space-y-3">
@@ -374,10 +375,10 @@
 
         <!-- Botões de Ação Fixos no Rodapé -->
         <div class="p-4 border-t border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 flex gap-2 flex-shrink-0">
-            <button onclick="randomizeAll()" class="flex-1 py-3 bg-gray-900 dark:bg-slate-900 hover:opacity-90 text-white font-semibold rounded-lg shadow transition flex justify-center items-center gap-2 text-sm">
+            <button type="button" onclick="randomizeAll()" class="flex-1 py-3 bg-gray-900 dark:bg-slate-900 hover:opacity-90 text-white font-semibold rounded-lg shadow transition flex justify-center items-center gap-2 text-sm">
                 <i data-feather="shuffle" class="w-4 h-4"></i> Sortear tudo
             </button>
-            <button onclick="downloadImage()" class="px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow transition flex items-center justify-center" title="Baixar Composição">
+            <button type="button" onclick="downloadImage()" class="px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow transition flex items-center justify-center" title="Baixar Composição">
                 <i data-feather="download" class="w-5 h-5"></i>
             </button>
         </div>
@@ -408,7 +409,7 @@
             <div id="art-shape" class="absolute w-[80%] h-[80%] transition-shape"></div>
             
             <!-- PNG da Arte (Frente) -->
-            <div id="art-image" class="absolute w-[75%] h-[75%] bg-contain bg-center bg-no-repeat pointer-events-none drop-shadow-sm"></div>
+            <div id="art-image" class="absolute w-[75%] h-[75%] bg-contain bg-center bg-no-repeat drop-shadow-sm cursor-grab active:cursor-grabbing hover:drop-shadow-md transition-shadow"></div>
         </div>
     </main>
 
@@ -429,8 +430,14 @@
                 
                 <!-- Step 1 -->
                 <div id="tut-step-1" class="tut-step active">
-                    <div class="w-full h-32 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl mb-4 border border-indigo-100 dark:border-indigo-800 flex items-center justify-center text-indigo-300 dark:text-indigo-700">
-                        <i data-feather="image" class="w-12 h-12"></i>
+                    <div class="w-full h-32 bg-white dark:bg-slate-900 rounded-xl mb-4 border border-gray-200 dark:border-slate-700 flex flex-col items-center justify-center p-4 overflow-hidden shadow-sm">
+                        <div class="text-[10px] font-semibold text-gray-700 dark:text-gray-300 self-start mb-2 w-full max-w-[200px] mx-auto">1. Selecione a Composição</div>
+                        <div class="flex gap-1.5 opacity-100">
+                            <div class="w-10 h-10 border-2 border-indigo-600 bg-gray-100 dark:bg-slate-800 rounded shadow-sm relative"><div class="absolute bottom-0 right-0 bg-black/60 text-white text-[7px] px-1 rounded-tl font-bold">1</div></div>
+                            <div class="w-10 h-10 border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-800 rounded"></div>
+                            <div class="w-10 h-10 border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-800 rounded"></div>
+                            <div class="w-10 h-10 border border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-800 rounded"></div>
+                        </div>
                     </div>
                     <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-1">1. Escolha a Arte Base</h3>
                     <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Selecione uma das variações numéricas na lateral. Temos opções de contorno, preenchidas e vazadas preparadas para reagirem perfeitamente às cores.</p>
@@ -438,8 +445,16 @@
 
                 <!-- Step 2 -->
                 <div id="tut-step-2" class="tut-step">
-                    <div class="w-full h-32 bg-pink-50 dark:bg-pink-900/20 rounded-xl mb-4 border border-pink-100 dark:border-pink-800 flex items-center justify-center text-pink-300 dark:text-pink-700">
-                        <i data-feather="hexagon" class="w-12 h-12"></i>
+                    <div class="w-full h-32 bg-white dark:bg-slate-900 rounded-xl mb-4 border border-gray-200 dark:border-slate-700 flex flex-col items-center justify-center p-4 overflow-hidden shadow-sm">
+                        <div class="flex gap-1 mb-3">
+                            <div class="text-[8px] font-bold uppercase py-1 px-1.5 rounded border bg-indigo-50 dark:bg-indigo-900/30 border-indigo-300 dark:border-indigo-700 text-indigo-700 dark:text-indigo-400">Estrela</div>
+                            <div class="text-[8px] font-bold uppercase py-1 px-1.5 rounded border bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-400">Convexo</div>
+                            <div class="text-[8px] font-bold uppercase py-1 px-1.5 rounded border bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-400">Irregular</div>
+                        </div>
+                        <div class="w-full max-w-[180px]">
+                            <div class="flex justify-between text-[9px] text-gray-500 mb-1 font-medium"><span>Número de Lados</span><span>5</span></div>
+                            <div class="w-full h-2 bg-gray-200 dark:bg-slate-700 rounded-full relative"><div class="absolute left-1/4 -top-1 w-4 h-4 bg-white border-2 border-gray-800 dark:border-gray-400 rounded-full shadow-sm"></div></div>
+                        </div>
                     </div>
                     <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-1">2. Molde a Geometria</h3>
                     <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Crie formas sólidas clássicas ou polígonos orgânicos irregulares. Deslize a barra de "Lados" para transformar a forma em tempo real sem perder a característica original.</p>
@@ -447,8 +462,14 @@
 
                 <!-- Step 3 -->
                 <div id="tut-step-3" class="tut-step">
-                    <div class="w-full h-32 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl mb-4 border border-emerald-100 dark:border-emerald-800 flex items-center justify-center text-emerald-300 dark:text-emerald-700">
-                        <i data-feather="aperture" class="w-12 h-12"></i>
+                    <div class="w-full h-32 bg-white dark:bg-slate-900 rounded-xl mb-4 border border-gray-200 dark:border-slate-700 flex flex-col items-center justify-center p-4 overflow-hidden shadow-sm">
+                        <div class="w-full max-w-[180px] mb-3">
+                            <div class="flex items-center gap-2"><span class="text-[9px] font-bold text-gray-400">HEX:</span><div class="flex-grow text-[10px] px-2 py-1 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded text-center font-mono font-medium text-gray-700 dark:text-gray-300">#E5533D</div></div>
+                        </div>
+                        <div class="w-full max-w-[180px]">
+                            <div class="flex justify-between text-[9px] text-gray-500 mb-1 font-medium"><span>Matiz (Hue)</span><span>15°</span></div>
+                            <div class="w-full h-2 rounded-full hue-gradient relative"><div class="absolute left-8 -top-1 w-4 h-4 bg-white border-2 border-gray-800 dark:border-gray-400 rounded-full shadow-sm"></div></div>
+                        </div>
                     </div>
                     <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-1">3. Ajuste as Cores</h3>
                     <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Mude as cores livremente com os controles deslizantes HSL ou digitando códigos HEX diretamente nas caixas de texto para obter tons exatos.</p>
@@ -456,8 +477,18 @@
 
                 <!-- Step 4 -->
                 <div id="tut-step-4" class="tut-step">
-                    <div class="w-full h-32 bg-red-50 dark:bg-red-900/20 rounded-xl mb-4 border border-red-100 dark:border-red-800 flex items-center justify-center text-red-300 dark:text-red-700">
-                        <i data-feather="lock" class="w-12 h-12"></i>
+                    <div class="w-full h-32 bg-white dark:bg-slate-900 rounded-xl mb-4 border border-gray-200 dark:border-slate-700 flex flex-col items-center justify-center p-4 overflow-hidden shadow-sm">
+                        <div class="flex items-center gap-6">
+                            <div class="flex flex-col items-center gap-1.5">
+                                <div class="p-1.5 rounded bg-gray-50 dark:bg-slate-800 text-gray-400 border border-gray-200 dark:border-slate-700"><i data-feather="unlock" class="w-4 h-4"></i></div>
+                                <span class="text-[9px] text-gray-400 font-medium">Livre</span>
+                            </div>
+                            <i data-feather="arrow-right" class="w-4 h-4 text-gray-300 dark:text-slate-600"></i>
+                            <div class="flex flex-col items-center gap-1.5">
+                                <div class="p-1.5 rounded bg-red-50 dark:bg-red-900/30 text-red-500 border border-red-100 dark:border-red-800/50"><i data-feather="lock" class="w-4 h-4"></i></div>
+                                <span class="text-[9px] text-red-500 font-bold">Travado</span>
+                            </div>
+                        </div>
                     </div>
                     <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-1">4. Trave suas Escolhas</h3>
                     <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Gostou de uma cor ou forma geométrica? Clique no ícone de cadeado para protegê-la. Assim, ao sortear tudo, suas escolhas favoritas serão mantidas.</p>
@@ -465,11 +496,18 @@
 
                 <!-- Step 5 -->
                 <div id="tut-step-5" class="tut-step">
-                    <div class="w-full h-32 bg-amber-50 dark:bg-amber-900/20 rounded-xl mb-4 border border-amber-100 dark:border-amber-800 flex items-center justify-center text-amber-300 dark:text-amber-700">
-                        <i data-feather="move" class="w-12 h-12"></i>
+                    <div class="w-full h-32 bg-white dark:bg-slate-900 rounded-xl mb-4 border border-gray-200 dark:border-slate-700 flex items-center justify-center gap-8 p-4 overflow-hidden shadow-sm">
+                        <div class="w-16 h-16 bg-[#eeebe3] border border-gray-200 dark:border-slate-700 rounded relative overflow-hidden shadow-inner flex items-center justify-center">
+                            <div class="w-8 h-8 bg-indigo-500 rounded-full absolute -top-1 -left-1 opacity-90"></div>
+                            <i data-feather="move" class="w-4 h-4 text-gray-700 z-10"></i>
+                        </div>
+                        <div class="flex flex-col items-center gap-2">
+                            <i data-feather="arrow-right" class="w-4 h-4 text-gray-300 dark:text-slate-600"></i>
+                            <div class="w-10 h-10 bg-indigo-600 rounded-lg shadow-md flex items-center justify-center text-white"><i data-feather="download" class="w-5 h-5"></i></div>
+                        </div>
                     </div>
                     <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-1">5. Posicione e Exporte</h3>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Arraste a forma geométrica diretamente com o mouse ou dedo para criar composições descentralizadas. Quando finalizar seus testes, baixe um PNG para referência.</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Arraste as formas livremente com o mouse para criar composições descentralizadas. Quando finalizar seus testes, baixe um PNG para referência.</p>
                 </div>
 
             </div>
@@ -530,6 +568,7 @@
             irregularRadii: [],
             shapeOffset: { x: 0, y: 0 },
             baseOffset: { x: 0, y: 0 },
+            imageOffset: { x: 0, y: 0 },
             locks: { art: false, shape: false, shapeColor: false, imgColor: false, canvasColor: false, base: false }
         };
 
@@ -634,12 +673,9 @@
 
             syncDOMWithState();
             renderCanvas();
-            
-            if(!sessionStorage.getItem('tutSeen')) {
-                setTimeout(openTutorial, 500);
-                sessionStorage.setItem('tutSeen', 'true');
-            }
-        }
+        } // <- Final da initApp
+        
+        // Removemos o setTimeout que abria o tutorial sozinho.
 
         function setupEventListeners() {
             document.getElementById('points-slider').addEventListener('input', e => {
@@ -700,12 +736,17 @@
             const container = document.getElementById('art-container');
             const shapeC = document.getElementById('art-shape');
             const baseC = document.getElementById('art-base');
+            const imgC = document.getElementById('art-image');
 
             const startDrag = (e, targetName) => {
                 activeDraggable = targetName;
                 const clientX = e.clientX || e.touches[0].clientX;
                 const clientY = e.clientY || e.touches[0].clientY;
-                const currentOffset = targetName === 'shape' ? state.shapeOffset : state.baseOffset;
+                
+                let currentOffset = state.imageOffset;
+                if (targetName === 'shape') currentOffset = state.shapeOffset;
+                else if (targetName === 'base') currentOffset = state.baseOffset;
+                
                 dragOffset.x = clientX - currentOffset.x;
                 dragOffset.y = clientY - currentOffset.y;
                 container.style.cursor = 'grabbing';
@@ -716,6 +757,10 @@
             shapeC.addEventListener('touchstart', e => startDrag(e, 'shape'), {passive: false});
             baseC.addEventListener('mousedown', e => startDrag(e, 'base'));
             baseC.addEventListener('touchstart', e => startDrag(e, 'base'), {passive: false});
+            
+            imgC.style.pointerEvents = 'auto';
+            imgC.addEventListener('mousedown', e => startDrag(e, 'image'));
+            imgC.addEventListener('touchstart', e => startDrag(e, 'image'), {passive: false});
 
             const onMove = e => {
                 if (!activeDraggable) return;
@@ -726,7 +771,8 @@
                 const newY = clientY - dragOffset.y;
 
                 if (activeDraggable === 'shape') state.shapeOffset = { x: newX, y: newY };
-                else state.baseOffset = { x: newX, y: newY };
+                else if (activeDraggable === 'base') state.baseOffset = { x: newX, y: newY };
+                else state.imageOffset = { x: newX, y: newY };
                 
                 renderCanvas();
             };
@@ -744,6 +790,7 @@
             container.addEventListener('dblclick', () => {
                 state.shapeOffset = { x: 0, y: 0 };
                 state.baseOffset = { x: 0, y: 0 };
+                state.imageOffset = { x: 0, y: 0 };
                 renderCanvas();
             });
         }
@@ -790,6 +837,13 @@
         }
 
         function regenerateIrregular(shouldRender = true) {
+            if (shouldRender) {
+                saveShapeToHistory();
+                state.shapePoints = Math.floor(Math.random() * 12) + 4; // de 4 a 15 lados
+                state.shapeScale = Math.floor(Math.random() * 80) + 70; // tamanho de 70% a 150%
+                state.shapeRotation = Math.floor(Math.random() * 360); // rotação de 0 a 360 graus
+            }
+
             state.irregularRadii = [];
             
             // Removemos a onda matemática limitadora para garantir que CADA clique crie 
@@ -810,7 +864,10 @@
                     state.irregularRadii.push(currentRadius);
                 }
             }
-            if (shouldRender) renderCanvas();
+            if (shouldRender) {
+                syncDOMWithState();
+                renderCanvas();
+            }
         }
 
         function generateClipPath(type, points) {
@@ -927,6 +984,7 @@
 
             const currentArt = arts[state.artIndex];
             imgC.style.backgroundImage = `url('${currentArt.file}')`;
+            imgC.style.transform = `translate(${state.imageOffset.x}px, ${state.imageOffset.y}px)`;
             
             if (currentArt.group > 1 && state.imageFill) {
                 imgC.style.backgroundColor = hslToHex(state.imageColor.h, state.imageColor.s, state.imageColor.l);
@@ -1025,6 +1083,7 @@
         function openTutorial() {
             const modal = document.getElementById('tutorial-modal');
             const content = document.getElementById('tutorial-content');
+
             modal.classList.remove('opacity-0', 'pointer-events-none');
             modal.classList.add('opacity-100');
             setTimeout(() => {
@@ -1152,6 +1211,24 @@
             img.src = currentArt.file;
 
             img.onload = () => {
+                // Desenha a Imagem (PNG) na posição calculada
+                ctx.save();
+                ctx.translate(750 + (state.imageOffset.x * 3.5), 750 + (state.imageOffset.y * 3.5));
+                const imgSize = 1500 * 0.75; 
+                
+                if (currentArt.group > 1 && state.imageFill) {
+                    // Preenchimento customizado com máscara da imagem
+                    ctx.fillStyle = hslToHex(state.imageColor.h, state.imageColor.s, state.imageColor.l);
+                    ctx.fillRect(-imgSize/2, -imgSize/2, imgSize, imgSize);
+                    ctx.globalCompositeOperation = 'destination-in';
+                    ctx.drawImage(img, -imgSize/2, -imgSize/2, imgSize, imgSize);
+                } else {
+                    // Arte normal ou vazada original
+                    ctx.drawImage(img, -imgSize/2, -imgSize/2, imgSize, imgSize);
+                }
+                ctx.restore();
+
+                // Camada de Ruído (Noise)
                 ctx.save();
                 ctx.globalAlpha = 0.20;
                 ctx.globalCompositeOperation = 'source-atop';
