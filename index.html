@@ -1,1070 +1,1175 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="light">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Rinoceronte Branco</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
+    
     <script>
-        // Configuração do Tailwind para suportar Modo Noturno via classe 'dark'
         tailwind.config = {
             darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        darkbg: '#0f172a',
-                        darkpanel: '#1e293b'
-                    }
-                }
-            }
         }
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    
+
     <style>
         body {
-            font-family: 'Inter', sans-serif;
-            color: #0f172a;
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f4f3ef;
+            color: #1a1a1a;
         }
-        
-        .dark body { color: #f8fafc; }
 
-        /* SCROLLBAR CUSTOMIZADA */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        .dark ::-webkit-scrollbar-thumb { background: #475569; }
-
-        /* ESTILIZAÇÃO DOS SLIDERS (RANGE INPUTS) */
+        /* Sliders Nativos */
         input[type=range] {
             -webkit-appearance: none;
             width: 100%;
-            background: #e2e8f0; 
-            height: 6px;
-            border-radius: 9999px;
+            background: #e5e7eb;
+            height: 8px;
+            border-radius: 4px;
             outline: none;
-            margin: 12px 0;
-            transition: background 0.3s;
+            margin: 10px 0;
         }
-        
-        .dark input[type=range] { background: #334155; }
+        .dark input[type=range] {
+            background: #334155;
+        }
 
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            height: 18px;
-            width: 18px;
+            height: 20px;
+            width: 20px;
             border-radius: 50%;
             background: #ffffff;
-            border: 2px solid #4f46e5;
+            border: 2px solid #1a1a1a;
             cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-            transition: transform 0.1s, box-shadow 0.1s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            margin-top: -6px;
         }
-        
-        .dark input[type=range]::-webkit-slider-thumb { border-color: #818cf8; }
-
-        input[type=range]::-webkit-slider-thumb:hover {
-            transform: scale(1.15);
-            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+        .dark input[type=range]::-webkit-slider-thumb {
+            border-color: #94a3b8;
         }
 
-        /* GRID BACKGROUND (CANVAS) */
+        .hue-gradient {
+            background: linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%) !important;
+        }
+
+        /* Fundo Geométrico do Canvas */
         .canvas-bg {
-            /* Cor de fundo manipulada via JS */
-            background-image: radial-gradient(rgba(100,100,100,0.15) 1.5px, transparent 1.5px);
-            background-size: 24px 24px;
-            transition: background-color 0.3s ease;
-        }
-        .dark .canvas-bg {
-            background-image: radial-gradient(rgba(255,255,255,0.1) 1.5px, transparent 1.5px);
+            background-color: #eeebe3;
+            background-image: radial-gradient(#d1cfc7 1px, transparent 1px);
+            background-size: 20px 20px;
         }
         
         .transition-shape {
-            transition: clip-path 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease;
+            transition: clip-path 0.2s ease, background-color 0.3s ease;
             transform-origin: center center;
-            will-change: clip-path, transform, background-color;
+        }
+
+        /* Granulado / Noise em CSS (UI Premium) */
+        .noise-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 50;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.20'/%3E%3C/svg%3E");
+            mix-blend-mode: multiply;
+        }
+        .dark .noise-overlay {
+            mix-blend-mode: screen;
+            opacity: 0.9;
+        }
+
+        /* Classes auxiliares para animação do Tutorial */
+        .tut-step { display: none; animation: fadeIn 0.3s ease-out forwards; }
+        .tut-step.active { display: block; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
-<body class="h-[100dvh] w-screen overflow-hidden flex flex-col md:flex-row bg-slate-50 dark:bg-darkbg transition-colors duration-300">
+<body class="h-[100dvh] w-screen overflow-hidden flex flex-col md:flex-row bg-[#f4f3ef] dark:bg-slate-900 dark:text-gray-100 transition-colors relative">
 
-    <aside class="order-2 md:order-1 w-full md:w-[420px] bg-white dark:bg-darkpanel border-t md:border-t-0 md:border-r border-slate-200 dark:border-slate-700 h-[55%] md:h-full flex flex-col shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.15)] md:shadow-2xl z-20 relative transition-colors duration-300">
-        
-        <!-- Header -->
-        <header class="p-5 border-b border-slate-100 dark:border-slate-700 flex-shrink-0 bg-white/80 dark:bg-darkpanel/80 backdrop-blur-md flex justify-between items-center transition-colors">
+    <aside class="order-2 md:order-1 w-full md:w-[450px] bg-white dark:bg-slate-800 border-r border-gray-200 dark:border-slate-700 h-[55%] md:h-full overflow-y-auto flex flex-col shadow-md z-20 relative">
+        <div class="p-6 border-b border-gray-100 dark:border-slate-700 flex-shrink-0 flex justify-between items-center">
             <div>
-                <h1 class="text-2xl font-extrabold tracking-tight">Rinoceronte Branco</h1>
+                <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+                    Rinoceronte Branco
+                </h1>
             </div>
-            <button onclick="toggleDarkMode()" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
-                <i data-feather="moon" id="dark-icon" class="w-5 h-5"></i>
-            </button>
-        </header>
+            <div class="flex items-center gap-2">
+                <!-- Botão Tutorial -->
+                <button onclick="openTutorial()" class="p-2.5 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:scale-105 transition" title="Como usar">
+                    <i data-feather="help-circle" class="w-4 h-4"></i>
+                </button>
+                <!-- Botão Modo Noturno -->
+                <button onclick="toggleDarkMode()" class="p-2.5 rounded-full bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-yellow-400 hover:scale-105 transition" title="Alternar Modo Noturno">
+                    <i data-feather="moon" class="w-4 h-4 hidden dark:block"></i>
+                    <i data-feather="sun" class="w-4 h-4 block dark:hidden"></i>
+                </button>
+            </div>
+        </div>
 
-        <!-- Corpo com Scroll -->
-        <div class="p-6 space-y-7 flex-grow overflow-y-auto">
+        <div class="p-6 space-y-8 flex-grow">
             
             <!-- SEÇÃO 1: Seleção de Arte -->
-            <section class="space-y-3">
-                <label class="block text-sm font-semibold">1. Selecionar Composição</label>
-                <div class="space-y-2" id="art-selector">
-                    <!-- Grupos e Miniaturas gerados via JS -->
-                </div>
-            </section>
-
-            <!-- SEÇÃO 2: Controles Geométricos -->
-            <section class="space-y-4 pt-5 border-t border-slate-100 dark:border-slate-700">
+            <div class="space-y-3">
                 <div class="flex justify-between items-center">
-                    <label class="block text-sm font-semibold">2. Forma</label>
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300">1. Selecione a Composição</label>
+                    <button onclick="toggleLock('art', this)" class="text-gray-400 hover:text-red-500 transition p-1 rounded hover:bg-gray-100 dark:hover:bg-slate-700" title="Travar composição">
+                        <i data-feather="unlock" class="w-3.5 h-3.5"></i>
+                    </button>
+                </div>
+                <div class="grid grid-cols-5 gap-2" id="art-selector">
+                    <!-- Gerado via JavaScript -->
+                </div>
+            </div>
+
+            <!-- SEÇÃO 2: Forma Destaque -->
+            <div class="space-y-4 pt-4 border-t border-gray-100 dark:border-slate-700">
+                <div class="flex justify-between items-center mb-1">
+                    <label class="text-sm font-semibold text-gray-700 dark:text-gray-300">2. Forma</label>
                     <div class="flex items-center gap-2">
-                        <button id="btn-undo-shape" onclick="undoShape()" class="hidden text-[10px] font-bold flex items-center gap-1 text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-1.5 rounded" title="Desfazer">
-                            <i data-feather="corner-up-left" class="w-3 h-3"></i> Voltar
-                        </button>
-                        <button onclick="randomizeShape()" class="text-[10px] font-bold flex items-center gap-1 text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-400 px-2 py-1.5 rounded transition">
+                        <button onclick="randomizeJustShape()" class="text-[10px] uppercase font-bold flex items-center gap-1 text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 transition" title="Sortear apenas a forma">
                             <i data-feather="shuffle" class="w-3 h-3"></i> Sortear
+                        </button>
+                        <button id="btn-undo-shape" onclick="undoShape()" class="hidden text-[10px] uppercase font-bold flex items-center gap-1 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition" title="Voltar forma anterior">
+                            <i data-feather="rotate-ccw" class="w-3 h-3"></i> Voltar
+                        </button>
+                        <button onclick="toggleLock('shape', this)" class="text-gray-400 hover:text-red-500 transition p-1 rounded hover:bg-gray-100 dark:hover:bg-slate-700" title="Travar forma">
+                            <i data-feather="unlock" class="w-3.5 h-3.5"></i>
                         </button>
                     </div>
                 </div>
                 
-                <div class="flex items-center gap-2">
-                    <select id="shape-type-select" class="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition font-medium">
-                        <option value="star">Estrela</option>
-                        <option value="polygon">Polígono Regular</option>
-                        <option value="convex">Polígono Convexo</option>
-                        <option value="concave">Polígono Côncavo</option>
-                        <option value="complex">Polígono Complexo</option>
-                        <option value="circle">Círculo / Elipse</option>
-                    </select>
-                    <button id="btn-regerar-irregular" onclick="regenerateIrregular()" class="hidden flex-shrink-0 p-2.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg hover:text-indigo-500 transition" title="Gerar nova identidade orgânica">
+                <div class="flex items-start gap-2 mb-3">
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-1.5 w-full" id="shape-buttons">
+                        <button onclick="setShapeType('star')" id="btn-shape-star" class="text-[9px] font-bold uppercase py-1.5 px-1 rounded border transition-colors bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 tracking-wide">Estrela</button>
+                        <button onclick="setShapeType('polygon')" id="btn-shape-polygon" class="text-[9px] font-bold uppercase py-1.5 px-1 rounded border transition-colors bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 tracking-wide">Convexo</button>
+                        <button onclick="setShapeType('concave')" id="btn-shape-concave" class="text-[9px] font-bold uppercase py-1.5 px-1 rounded border transition-colors bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 tracking-wide">Côncavo</button>
+                        <button onclick="setShapeType('irregular')" id="btn-shape-irregular" class="text-[9px] font-bold uppercase py-1.5 px-1 rounded border transition-colors bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 tracking-wide">Irregular</button>
+                        <button onclick="setShapeType('complex')" id="btn-shape-complex" class="text-[9px] font-bold uppercase py-1.5 px-1 rounded border transition-colors bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 tracking-wide">Complexo</button>
+                        <button onclick="setShapeType('circle')" id="btn-shape-circle" class="text-[9px] font-bold uppercase py-1.5 px-1 rounded border transition-colors bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 tracking-wide">Círculo</button>
+                    </div>
+                    <button id="btn-regerar-irregular" onclick="regenerateIrregular()" class="hidden p-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 hover:bg-gray-100 text-gray-700 dark:text-gray-300 rounded shadow-sm transition flex-shrink-0" title="Gerar nova variação">
                         <i data-feather="refresh-cw" class="w-4 h-4"></i>
                     </button>
                 </div>
 
-                <div id="control-points" class="space-y-1 mt-3">
-                    <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400 font-medium">
-                        <span>Lados / Complexidade</span>
-                        <span id="points-val" class="font-bold">5</span>
+                <!-- Controle de Pontas (Oculto no Círculo) -->
+                <div class="space-y-1" id="points-wrapper">
+                    <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 font-medium">
+                        <span>Número de Lados</span>
+                        <span id="points-val">5</span>
                     </div>
                     <input type="range" id="points-slider" min="3" max="20" value="5">
                 </div>
 
-                <div id="control-ellipse-x" class="space-y-1 mt-3 hidden">
-                    <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400 font-medium">
-                        <span>Largura (Achatar/Alongar)</span>
-                        <span id="ellipse-x-val" class="font-bold">50%</span>
+                <!-- Controles de Elipse (Visível apenas no Círculo) -->
+                <div id="ellipse-controls" class="space-y-4 hidden">
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 font-medium">
+                            <span>Largura (Achatar / Alongar)</span>
+                            <span id="ellipse-x-val">100%</span>
+                        </div>
+                        <input type="range" id="ellipse-x-slider" min="30" max="200" value="100">
                     </div>
-                    <input type="range" id="ellipse-x-slider" min="5" max="50" value="50">
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 font-medium">
+                            <span>Altura (Achatar / Alongar)</span>
+                            <span id="ellipse-y-val">100%</span>
+                        </div>
+                        <input type="range" id="ellipse-y-slider" min="30" max="200" value="100">
+                    </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4 pt-2">
+                <!-- Controles Universais de Transformação -->
+                <div class="grid grid-cols-2 gap-4 pt-2" id="scale-rotation-wrapper">
                     <div class="space-y-1">
-                        <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400 font-medium">
-                            <span>Escala</span>
+                        <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 font-medium">
+                            <span>Tamanho</span>
                             <span id="scale-val">100%</span>
                         </div>
                         <input type="range" id="scale-slider" min="30" max="200" value="100">
                     </div>
-                    <div id="control-rotation" class="space-y-1">
-                        <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400 font-medium">
+                    <div class="space-y-1" id="rotation-container">
+                        <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 font-medium">
                             <span>Rotação</span>
                             <span id="rotation-val">0°</span>
                         </div>
                         <input type="range" id="rotation-slider" min="0" max="360" value="0">
                     </div>
-                    <div id="control-ellipse-y" class="space-y-1 hidden">
-                        <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400 font-medium">
-                            <span>Altura (Achatar/Alongar)</span>
-                            <span id="ellipse-y-val">50%</span>
-                        </div>
-                        <input type="range" id="ellipse-y-slider" min="5" max="50" value="50">
+                </div>
+            </div>
+
+            <!-- SEÇÃO 3: Cor do Destaque -->
+            <div class="space-y-4 pt-4 border-t border-gray-100 dark:border-slate-700">
+                <div class="flex justify-between items-center">
+                    <label class="text-sm font-semibold text-gray-700 dark:text-gray-300">3. Cor do Destaque</label>
+                    <div class="flex items-center gap-2">
+                        <button onclick="randomizeShapeColor()" class="text-[10px] uppercase font-bold flex items-center gap-1 text-pink-600 dark:text-pink-400 hover:text-pink-800 transition" title="Sortear Cor da Forma">
+                            <i data-feather="aperture" class="w-3 h-3"></i> Sortear
+                        </button>
+                        <button onclick="toggleLock('shapeColor', this)" class="text-gray-400 hover:text-red-500 transition p-1 rounded hover:bg-gray-100 dark:hover:bg-slate-700" title="Travar cor">
+                            <i data-feather="unlock" class="w-3.5 h-3.5"></i>
+                        </button>
                     </div>
                 </div>
-            </section>
 
-            <!-- SEÇÃO 3: Cor do Destaque (Forma) -->
-            <section class="space-y-3 pt-5 border-t border-slate-100 dark:border-slate-700">
-                <div class="flex justify-between items-center">
-                    <label class="block text-sm font-semibold">3. Cor do Destaque (Forma)</label>
-                    <button onclick="randomizeShapeColor()" class="text-[10px] font-bold flex items-center gap-1 text-pink-600 bg-pink-50 dark:bg-pink-900/30 dark:text-pink-400 px-2 py-1.5 rounded transition hover:scale-105 active:scale-95">
-                        <i data-feather="aperture" class="w-3 h-3"></i> Sortear Cor
-                    </button>
-                </div>
-                <input type="range" id="shape-hue" min="0" max="360" value="250" class="hue-gradient">
-                <input type="range" id="shape-sat" min="0" max="100" value="85">
-                <input type="range" id="shape-lig" min="0" max="100" value="65">
-            </section>
-
-            <!-- SEÇÃO 4: Cores do PNG (Apenas Lotes 2 e 3) -->
-            <section id="img-group-2-controls" class="space-y-4 pt-5 border-t border-slate-100 dark:border-slate-700 hidden">
-                <div class="flex justify-between items-center">
-                    <label class="block text-sm font-semibold">4. Cor da Imagem</label>
-                    <label class="flex items-center gap-2 cursor-pointer group" title="Ativar para Colorir (Knockout se desligado)">
-                        <span class="text-[10px] font-bold text-slate-500 group-hover:text-indigo-500 transition uppercase">Preenchimento</span>
-                        <div class="relative">
-                            <input type="checkbox" id="img-fill-toggle" class="sr-only peer" checked>
-                            <div class="w-8 h-4 bg-slate-300 dark:bg-slate-600 rounded-full peer peer-checked:bg-indigo-500 transition-colors"></div>
-                            <div class="absolute left-1 top-0.5 bg-white w-3 h-3 rounded-full transition-transform peer-checked:translate-x-4"></div>
-                        </div>
-                    </label>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">HEX:</span>
+                    <input type="text" id="shape-hex-input" class="flex-grow text-xs px-2 py-1.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded text-center font-mono uppercase text-gray-700 dark:text-gray-300 outline-none focus:ring-1 focus:ring-indigo-500 transition font-medium" value="#E5533D" maxlength="7">
                 </div>
                 
-                <div id="img-color-sliders">
-                    <input type="range" id="img-hue" min="0" max="360" value="15" class="hue-gradient">
-                    <input type="range" id="img-sat" min="0" max="100" value="85">
-                    <input type="range" id="img-lig" min="0" max="100" value="55">
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 font-medium">
+                        <span>Matiz (Hue)</span>
+                        <span id="hue-val">15°</span>
+                    </div>
+                    <input type="range" id="hue-slider" class="hue-gradient" min="0" max="360" value="15">
                 </div>
-            </section>
+
+                <div class="grid grid-cols-2 gap-4 pt-1">
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 font-medium">
+                            <span>Saturação</span>
+                            <span id="sat-val">85%</span>
+                        </div>
+                        <input type="range" id="sat-slider" min="0" max="100" value="85">
+                    </div>
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 font-medium">
+                            <span>Brilho</span>
+                            <span id="lig-val">55%</span>
+                        </div>
+                        <input type="range" id="lig-slider" min="0" max="100" value="55">
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEÇÃO 4: Cor do PNG -->
+            <div id="img-color-section" class="space-y-4 pt-4 border-t border-gray-100 dark:border-slate-700 hidden">
+                <div class="flex justify-between items-center">
+                    <label class="text-sm font-semibold text-gray-700 dark:text-gray-300">4. Cor da Arte</label>
+                    <div class="flex items-center gap-3">
+                        <label class="flex items-center gap-2 cursor-pointer group" title="Ativar preenchimento">
+                            <span class="text-[10px] font-bold text-gray-400 group-hover:text-indigo-500 transition uppercase">Preencher</span>
+                            <div class="relative">
+                                <input type="checkbox" id="img-fill-toggle" class="sr-only peer" checked>
+                                <div class="w-8 h-4 bg-gray-300 dark:bg-slate-700 rounded-full peer peer-checked:bg-indigo-600 transition-colors"></div>
+                                <div class="absolute left-1 top-0.5 bg-white w-3 h-3 rounded-full transition-transform peer-checked:translate-x-4"></div>
+                            </div>
+                        </label>
+                        <button onclick="toggleLock('imgColor', this)" class="text-gray-400 hover:text-red-500 transition p-1 rounded hover:bg-gray-100 dark:hover:bg-slate-700" title="Travar cor da arte">
+                            <i data-feather="unlock" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">HEX:</span>
+                    <input type="text" id="img-hex-input" class="flex-grow text-xs px-2 py-1.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded text-center font-mono uppercase text-gray-700 dark:text-gray-300 outline-none focus:ring-1 focus:ring-indigo-500 transition font-medium" value="#000000" maxlength="7">
+                </div>
+                
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 font-medium">
+                        <span>Matiz (Hue)</span>
+                        <span id="img-hue-val">0°</span>
+                    </div>
+                    <input type="range" id="img-hue-slider" class="hue-gradient" min="0" max="360" value="0">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 pt-1">
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 font-medium">
+                            <span>Saturação</span>
+                            <span id="img-sat-val">0%</span>
+                        </div>
+                        <input type="range" id="img-sat-slider" min="0" max="100" value="0">
+                    </div>
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 font-medium">
+                            <span>Brilho</span>
+                            <span id="img-lig-val">100%</span>
+                        </div>
+                        <input type="range" id="img-lig-slider" min="0" max="100" value="100">
+                    </div>
+                </div>
+            </div>
 
             <!-- SEÇÃO 5: Cor do Ambiente (Canvas) -->
-            <section class="space-y-3 pt-5 border-t border-slate-100 dark:border-slate-700 pb-2">
-                <label class="block text-sm font-semibold">5. Cor do Ambiente (Canvas)</label>
-                <input type="range" id="canvas-hue" min="0" max="360" value="210" class="hue-gradient">
-                <input type="range" id="canvas-sat" min="0" max="100" value="20">
-                <input type="range" id="canvas-lig" min="0" max="100" value="96">
-            </section>
-
-            <!-- SEÇÃO 6: Fundo Base -->
-            <section class="space-y-4 pt-5 border-t border-slate-100 dark:border-slate-700">
+            <div class="space-y-4 pt-4 border-t border-gray-100 dark:border-slate-700">
                 <div class="flex justify-between items-center">
-                    <label class="block text-sm font-semibold">6. Fundo Base</label>
-                    <label class="flex items-center gap-2 cursor-pointer group" title="Liga/Desliga o fundo base">
-                        <span class="text-[10px] font-bold text-slate-500 group-hover:text-indigo-500 transition uppercase">Visível</span>
-                        <div class="relative">
-                            <!-- Inicia desmarcado (invisível por padrão) -->
-                            <input type="checkbox" id="base-visible-toggle" class="sr-only peer">
-                            <div class="w-8 h-4 bg-slate-300 dark:bg-slate-600 rounded-full peer peer-checked:bg-indigo-500 transition-colors"></div>
-                            <div class="absolute left-1 top-0.5 bg-white w-3 h-3 rounded-full transition-transform peer-checked:translate-x-4"></div>
-                        </div>
-                    </label>
+                    <label class="text-sm font-semibold text-gray-700 dark:text-gray-300">5. Cor do Ambiente</label>
+                    <button onclick="toggleLock('canvasColor', this)" class="text-gray-400 hover:text-red-500 transition p-1 rounded hover:bg-gray-100 dark:hover:bg-slate-700" title="Travar ambiente">
+                        <i data-feather="unlock" class="w-3.5 h-3.5"></i>
+                    </button>
+                </div>
+                
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">HEX:</span>
+                    <input type="text" id="canvas-hex-input" class="flex-grow text-xs px-2 py-1.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded text-center font-mono uppercase text-gray-700 dark:text-gray-300 outline-none focus:ring-1 focus:ring-indigo-500 transition font-medium" value="#EEEBE3" maxlength="7">
                 </div>
 
-                <div id="base-controls" class="space-y-3 transition-opacity opacity-30 pointer-events-none">
-                    <select id="base-type-select" class="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition font-medium">
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 font-medium">
+                        <span>Matiz / Saturação / Brilho</span>
+                        <span id="canvas-hue-val">Fundo</span>
+                    </div>
+                    <input type="range" id="canvas-hue-slider" class="hue-gradient" min="0" max="360" value="40">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="range" id="canvas-sat-slider" min="0" max="100" value="15">
+                    <input type="range" id="canvas-lig-slider" min="0" max="100" value="90">
+                </div>
+            </div>
+
+            <!-- SEÇÃO 6: Fundo Base -->
+            <div class="space-y-4 pt-4 border-t border-gray-100 dark:border-slate-700 pb-2">
+                <div class="flex justify-between items-center">
+                    <label class="text-sm font-semibold text-gray-700 dark:text-gray-300">6. Fundo Base</label>
+                    <div class="flex items-center gap-3">
+                        <label class="flex items-center gap-2 cursor-pointer group" title="Ativar Fundo Base">
+                            <span class="text-[10px] font-bold text-gray-400 group-hover:text-indigo-500 transition uppercase">Visível</span>
+                            <div class="relative">
+                                <input type="checkbox" id="base-visible-toggle" class="sr-only peer">
+                                <div class="w-8 h-4 bg-gray-300 dark:bg-slate-700 rounded-full peer peer-checked:bg-indigo-600 transition-colors"></div>
+                                <div class="absolute left-1 top-0.5 bg-white w-3 h-3 rounded-full transition-transform peer-checked:translate-x-4"></div>
+                            </div>
+                        </label>
+                        <button onclick="toggleLock('base', this)" class="text-gray-400 hover:text-red-500 transition p-1 rounded hover:bg-gray-100 dark:hover:bg-slate-700" title="Travar fundo base">
+                            <i data-feather="unlock" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <select id="base-type-select" class="p-2.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg text-sm font-medium outline-none dark:text-gray-200">
                         <option value="circle">Círculo</option>
                         <option value="square">Quadrado</option>
                         <option value="rounded">Quadrado Arredondado</option>
                     </select>
-
-                    <div class="space-y-1 mt-3">
-                        <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400 font-medium">
-                            <span>Escala do Fundo</span>
-                            <span id="base-scale-val">90%</span>
-                        </div>
-                        <input type="range" id="base-scale-slider" min="50" max="150" value="90">
-                    </div>
-
-                    <div class="pt-2">
-                        <input type="range" id="base-hue" min="0" max="360" value="200" class="hue-gradient">
-                        <input type="range" id="base-sat" min="0" max="100" value="40">
-                        <input type="range" id="base-lig" min="0" max="100" value="80">
+                    <div class="flex items-center gap-2 px-2 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg">
+                        <span class="text-[11px] text-gray-400 font-bold">Tam</span>
+                        <input type="range" id="base-scale-slider" min="50" max="150" value="95">
                     </div>
                 </div>
-            </section>
+
+                <div class="flex items-center gap-2 mt-2 mb-2">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">HEX:</span>
+                    <input type="text" id="base-hex-input" class="flex-grow text-xs px-2 py-1.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded text-center font-mono uppercase text-gray-700 dark:text-gray-300 outline-none focus:ring-1 focus:ring-indigo-500 transition font-medium" value="#FFFFFF" maxlength="7">
+                </div>
+
+                <div class="space-y-1">
+                    <input type="range" id="base-hue-slider" class="hue-gradient" min="0" max="360" value="0">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="range" id="base-sat-slider" min="0" max="100" value="0">
+                    <input type="range" id="base-lig-slider" min="0" max="100" value="100">
+                </div>
+            </div>
         </div>
 
-        <!-- Footer Controls -->
-        <div class="p-4 md:p-5 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-darkpanel flex-shrink-0 z-10 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)] flex flex-col md:flex-row gap-3">
-            <button onclick="downloadImage()" class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg hover:shadow-indigo-500/30 transition-all active:scale-[0.98] flex justify-center items-center gap-2">
-                <i data-feather="download" class="w-4 h-4"></i> Baixar PNG
-            </button>
-            <button onclick="randomizeAll()" class="flex-1 py-3 bg-slate-900 dark:bg-slate-100 hover:bg-black dark:hover:bg-white text-white dark:text-slate-900 font-bold rounded-xl shadow-lg transition-all active:scale-[0.98] flex justify-center items-center gap-2">
+        <!-- Botões de Ação Fixos no Rodapé -->
+        <div class="p-4 border-t border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 flex gap-2 flex-shrink-0">
+            <button onclick="randomizeAll()" class="flex-1 py-3 bg-gray-900 dark:bg-slate-900 hover:opacity-90 text-white font-semibold rounded-lg shadow transition flex justify-center items-center gap-2 text-sm">
                 <i data-feather="shuffle" class="w-4 h-4"></i> Sortear tudo
+            </button>
+            <button onclick="downloadImage()" class="px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow transition flex items-center justify-center" title="Baixar Composição">
+                <i data-feather="download" class="w-5 h-5"></i>
             </button>
         </div>
     </aside>
 
-    <!-- ÁREA PRINCIPAL (CANVAS) -->
-    <main id="main-canvas" class="order-1 md:order-2 h-[45%] md:h-full md:flex-1 w-full canvas-bg flex flex-col items-center justify-center p-4 md:p-8 relative z-10 overflow-hidden">
+    <!-- ÁREA DE PRÉ-VISUALIZAÇÃO (Canvas) -->
+    <main class="order-1 md:order-2 flex-grow h-[45%] md:h-full canvas-bg flex items-center justify-center p-4 relative z-10 overflow-hidden select-none" id="main-canvas-area">
         
-        <div class="absolute top-4 left-1/2 -translate-x-1/2 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md px-4 py-2 rounded-full text-[10px] md:text-xs text-slate-600 dark:text-slate-300 font-medium shadow-sm pointer-events-none z-30 flex items-center gap-2 border border-slate-200/50 dark:border-slate-700/50 text-center w-max">
-            <i data-feather="move" class="w-3 h-3"></i> Arraste as formas (2x clique centraliza)
+        <!-- Disclaimer / Dica Flutuante -->
+        <div class="absolute top-4 left-4 z-30 bg-white/80 dark:bg-slate-800/90 backdrop-blur-md px-3 py-2 rounded-xl shadow-sm border border-gray-200/50 dark:border-slate-700/50 pointer-events-none flex flex-col gap-1 w-[260px] md:w-[320px]">
+            <div class="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 text-[11px]">
+                <i data-feather="move" class="w-3.5 h-3.5"></i>
+                <span><strong class="font-bold">Arraste as formas livremente</strong> <span class="opacity-75 hidden md:inline">• Duplo clique centraliza</span></span>
+            </div>
+            <div class="text-[9.5px] leading-tight text-gray-500 dark:text-gray-400 border-t border-gray-200/50 dark:border-slate-700/50 pt-1.5 mt-0.5">
+                A resolução aqui está reduzida. O site é apenas um ambiente de testes para criativos. As composições serão finalizadas manualmente depois.
+            </div>
         </div>
 
-        <!-- CONTAINER PARA EXPORTAÇÃO -->
-        <!-- Responsive Fix: No mobile é limitado pela altura, no desktop é limitado pela largura -->
-        <div id="art-container" class="relative flex items-center justify-center aspect-square h-[90%] md:h-auto w-auto max-w-[95vw] md:w-full md:max-w-[550px] transition-transform duration-300 isolate mx-auto">
-            
-            <!-- Fundo Base (Nova camada) -->
-            <div id="base-shape" class="absolute w-[90%] h-[90%] transition-shape shadow-lg z-0"></div>
+        <!-- Camada de Granulado Estética (Noise) -->
+        <div class="noise-overlay"></div>
 
-            <!-- Shape Background (Agora limitado a 80% p/ sobrar pouco em relação à imagem 75%) -->
-            <div id="art-shape" class="absolute w-[80%] h-[80%] transition-shape shadow-2xl z-10"></div>
-            
-            <!-- Imagem PNG (Foreground - Base 75%) -->
-            <div id="art-image" class="absolute w-[75%] h-[75%] bg-contain bg-center bg-no-repeat transition-all duration-300 pointer-events-none drop-shadow-[0_20px_25px_rgba(0,0,0,0.3)] flex flex-col items-center justify-center text-slate-400 text-sm font-medium text-center border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-2xl bg-white/30 dark:bg-slate-800/30 backdrop-blur-sm z-20">
-                <i data-feather="image" class="w-10 h-10 mb-2 opacity-50"></i>
-                <span id="art-placeholder-text">Nenhuma imagem carregada</span>
-            </div>
+        <div id="art-container" class="relative flex items-center justify-center w-[300px] sm:w-[420px] aspect-square drop-shadow-sm cursor-grab active:cursor-grabbing">
+            <!-- Fundo Base Extra (Por trás de tudo) -->
+            <div id="art-base" class="absolute transition-shape" style="display: none;"></div>
 
+            <!-- Forma Destaque Geométrica -->
+            <div id="art-shape" class="absolute w-[80%] h-[80%] transition-shape"></div>
+            
+            <!-- PNG da Arte (Frente) -->
+            <div id="art-image" class="absolute w-[75%] h-[75%] bg-contain bg-center bg-no-repeat pointer-events-none drop-shadow-sm"></div>
         </div>
     </main>
 
+    <!-- MODAL DE TUTORIAL -->
+    <div id="tutorial-modal" class="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col transform scale-95 transition-transform duration-300" id="tutorial-content">
+            
+            <div class="px-6 py-4 border-b border-gray-100 dark:border-slate-700 flex justify-between items-center bg-gray-50 dark:bg-slate-900/30">
+                <h2 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <i data-feather="flag" class="text-indigo-500 w-5 h-5"></i> Como usar o Estúdio
+                </h2>
+                <button onclick="closeTutorial()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition">
+                    <i data-feather="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 relative min-h-[220px]">
+                
+                <!-- Step 1 -->
+                <div id="tut-step-1" class="tut-step active">
+                    <div class="w-full h-32 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl mb-4 border border-indigo-100 dark:border-indigo-800 flex items-center justify-center text-indigo-300 dark:text-indigo-700">
+                        <i data-feather="image" class="w-12 h-12"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-1">1. Escolha a Arte Base</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Selecione uma das variações numéricas na lateral. Temos opções de contorno, preenchidas e vazadas preparadas para reagirem perfeitamente às cores.</p>
+                </div>
+
+                <!-- Step 2 -->
+                <div id="tut-step-2" class="tut-step">
+                    <div class="w-full h-32 bg-pink-50 dark:bg-pink-900/20 rounded-xl mb-4 border border-pink-100 dark:border-pink-800 flex items-center justify-center text-pink-300 dark:text-pink-700">
+                        <i data-feather="hexagon" class="w-12 h-12"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-1">2. Molde a Geometria</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Crie formas sólidas clássicas ou polígonos orgânicos irregulares. Deslize a barra de "Lados" para transformar a forma em tempo real sem perder a característica original.</p>
+                </div>
+
+                <!-- Step 3 -->
+                <div id="tut-step-3" class="tut-step">
+                    <div class="w-full h-32 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl mb-4 border border-emerald-100 dark:border-emerald-800 flex items-center justify-center text-emerald-300 dark:text-emerald-700">
+                        <i data-feather="aperture" class="w-12 h-12"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-1">3. Ajuste as Cores</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Mude as cores livremente com os controles deslizantes HSL ou digitando códigos HEX diretamente nas caixas de texto para obter tons exatos.</p>
+                </div>
+
+                <!-- Step 4 -->
+                <div id="tut-step-4" class="tut-step">
+                    <div class="w-full h-32 bg-red-50 dark:bg-red-900/20 rounded-xl mb-4 border border-red-100 dark:border-red-800 flex items-center justify-center text-red-300 dark:text-red-700">
+                        <i data-feather="lock" class="w-12 h-12"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-1">4. Trave suas Escolhas</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Gostou de uma cor ou forma geométrica? Clique no ícone de cadeado para protegê-la. Assim, ao sortear tudo, suas escolhas favoritas serão mantidas.</p>
+                </div>
+
+                <!-- Step 5 -->
+                <div id="tut-step-5" class="tut-step">
+                    <div class="w-full h-32 bg-amber-50 dark:bg-amber-900/20 rounded-xl mb-4 border border-amber-100 dark:border-amber-800 flex items-center justify-center text-amber-300 dark:text-amber-700">
+                        <i data-feather="move" class="w-12 h-12"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-1">5. Posicione e Exporte</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Arraste a forma geométrica diretamente com o mouse ou dedo para criar composições descentralizadas. Quando finalizar seus testes, baixe um PNG para referência.</p>
+                </div>
+
+            </div>
+            
+            <div class="px-6 py-4 bg-gray-50 dark:bg-slate-900/50 border-t border-gray-100 dark:border-slate-700 flex justify-between items-center">
+                <button onclick="prevStep()" id="tut-prev" class="px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white transition disabled:opacity-30 disabled:pointer-events-none">Anterior</button>
+                <div class="flex gap-1.5" id="tut-dots">
+                    <div class="w-2 h-2 rounded-full bg-indigo-600 transition-colors"></div>
+                    <div class="w-2 h-2 rounded-full bg-gray-300 dark:bg-slate-600 transition-colors"></div>
+                    <div class="w-2 h-2 rounded-full bg-gray-300 dark:bg-slate-600 transition-colors"></div>
+                    <div class="w-2 h-2 rounded-full bg-gray-300 dark:bg-slate-600 transition-colors"></div>
+                    <div class="w-2 h-2 rounded-full bg-gray-300 dark:bg-slate-600 transition-colors"></div>
+                </div>
+                <button onclick="nextStep()" id="tut-next" class="px-4 py-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition shadow-md">Próximo</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Inicializa ícones do Feather
-        feather.replace();
-
-        // INJEÇÃO DA COR DA BARRA HUE
-        document.querySelectorAll('.hue-gradient').forEach(el => {
-            el.style.background = 'linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%)';
-        });
-
-        // -------------------------------------------------------------------------
-        // MODELO DE DADOS: Imagens Pré-carregadas (Pasta local /images/)
-        // -------------------------------------------------------------------------
         const arts = [
-            // Lote 1: Completos (Normais)
-            { id: 0, name: 'Costanza Completo', file: 'images/Costanza Completo.png', group: 1 },
-            { id: 1, name: 'Direita Completo', file: 'images/Direita Completo.png', group: 1 },
-            { id: 2, name: 'Duo Completo', file: 'images/Duo Completo.png', group: 1 },
-            { id: 3, name: 'Esquerda Completo', file: 'images/Esquerda Completo.png', group: 1 },
-            { id: 4, name: 'Frente Completo', file: 'images/Frente Completo.png', group: 1 },
-            // Lote 2: Preenchidos (Sólidos customizáveis)
-            { id: 5, name: 'Costanza Preenchido', file: 'images/Costanza Preenchido.png', group: 2 },
-            { id: 6, name: 'Direita Preenchido', file: 'images/Direita Preenchido.png', group: 2 },
-            { id: 7, name: 'Duo Preenchido', file: 'images/Duo Preenchido.png', group: 2 },
-            { id: 8, name: 'Esquerda Preenchido', file: 'images/Esquerda Preenchido.png', group: 2 },
-            { id: 9, name: 'Frente Preenchido', file: 'images/Frente Preenchido.png', group: 2 },
-            // Lote 3: Vazados (Customizáveis via preenchimento/knockout)
-            { id: 10, name: 'Costanza Vazado', file: 'images/Costanza Vazado.png', group: 3 },
-            { id: 11, name: 'Direita Vazado', file: 'images/Direita Vazado.png', group: 3 },
-            { id: 12, name: 'Duo Vazado', file: 'images/Duo Vazado.png', group: 3 },
-            { id: 13, name: 'Esquerda Vazado', file: 'images/Esquerda Vazado.png', group: 3 },
-            { id: 14, name: 'Frente Vazado', file: 'images/Frente Vazado.png', group: 3 }
+            { id: 0, name: "Costanza Completo", file: "images/Costanza Completo.png", group: 1 },
+            { id: 1, name: "Direita Completo", file: "images/Direita Completo.png", group: 1 },
+            { id: 2, name: "Duo Completo", file: "images/Duo Completo.png", group: 1 },
+            { id: 3, name: "Esquerda Completo", file: "images/Esquerda Completo.png", group: 1 },
+            { id: 4, name: "Frente Completo", file: "images/Frente Completo.png", group: 1 },
+            
+            { id: 5, name: "Costanza Preenchido", file: "images/Costanza Preenchido.png", group: 2 },
+            { id: 6, name: "Direita Preenchido", file: "images/Direita Preenchido.png", group: 2 },
+            { id: 7, name: "Duo Preenchido", file: "images/Duo Preenchido.png", group: 2 },
+            { id: 8, name: "Esquerda Preenchido", file: "images/Esquerda Preenchido.png", group: 2 },
+            { id: 9, name: "Frente Preenchido", file: "images/Frente Preenchido.png", group: 2 },
+            
+            { id: 10, name: "Costanza Vazado", file: "images/Costanza Vazado.png", group: 3 },
+            { id: 11, name: "Direita Vazado", file: "images/Direita Vazado.png", group: 3 },
+            { id: 12, name: "Duo Vazado", file: "images/Duo Vazado.png", group: 3 },
+            { id: 13, name: "Esquerda Vazado", file: "images/Esquerda Vazado.png", group: 3 },
+            { id: 14, name: "Frente Vazado", file: "images/Frente Vazado.png", group: 3 },
+            
+            { id: 15, name: "Rinocerontes Separados", file: "images/Rinocerontes Separados.png", group: 1 }
         ];
 
-        // -------------------------------------------------------------------------
-        // ESTADO GLOBAL (Source of Truth)
-        // -------------------------------------------------------------------------
-        const state = {
-            isDark: false,
+        let state = {
             artIndex: 0,
-            base: { active: false, type: 'circle', scale: 90, x: 0, y: 0 },
-            baseColor: { h: 200, s: 40, l: 80 },
-            shape: { type: 'star', points: 5, scale: 100, rotation: 0, irregularRadii: [], ellipseX: 50, ellipseY: 50, x: 0, y: 0 },
-            shapeColor: { h: 250, s: 85, l: 65 },
-            imageColor: { h: 15, s: 85, l: 55 },
-            imageFill: true, 
-            canvasColor: { h: 210, s: 20, l: 96 }
+            shapeType: 'star',
+            shapePoints: 5,
+            shapeScale: 100,
+            shapeRotation: 0,
+            ellipseX: 100,
+            ellipseY: 100,
+            shapeColor: { h: 15, s: 85, l: 55 },
+            imageColor: { h: 0, s: 0, l: 100 },
+            imageFill: true,
+            canvasColor: { h: 40, s: 15, l: 90 },
+            baseVisible: false,
+            baseType: 'circle',
+            baseScale: 95,
+            baseColor: { h: 0, s: 0, l: 100 },
+            irregularRadii: [],
+            shapeOffset: { x: 0, y: 0 },
+            baseOffset: { x: 0, y: 0 },
+            locks: { art: false, shape: false, shapeColor: false, imgColor: false, canvasColor: false, base: false }
         };
 
-        const shapeHistory = [];
-        const MAX_HISTORY = 10;
-        const shapeSequence = ['star', 'polygon', 'convex', 'concave', 'complex'];
+        let shapeHistory = [];
+        let shapeSequence = ['star', 'polygon', 'concave', 'irregular', 'complex'];
         let currentSequenceIndex = 0;
+        let tutCurrentStep = 1;
 
-        // Referências DOM
-        const DOM = {
-            mainCanvas: document.getElementById('main-canvas'),
-            imageContainer: document.getElementById('art-image'),
-            shapeContainer: document.getElementById('art-shape'),
-            baseContainer: document.getElementById('base-shape'),
-            imgGroup2Controls: document.getElementById('img-group-2-controls'),
-            imgColorSliders: document.getElementById('img-color-sliders'),
-            baseControls: document.getElementById('base-controls'),
-            
-            inputs: {
-                baseVisible: document.getElementById('base-visible-toggle'),
-                baseType: document.getElementById('base-type-select'),
-                baseScale: document.getElementById('base-scale-slider'),
-                baseH: document.getElementById('base-hue'),
-                baseS: document.getElementById('base-sat'),
-                baseL: document.getElementById('base-lig'),
+        function hslToHex(h, s, l) {
+            l /= 100;
+            const a = s * Math.min(l, 1 - l) / 100;
+            const f = n => {
+                const k = (n + h / 30) % 12;
+                const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+                return Math.round(255 * color).toString(16).padStart(2, '0');
+            };
+            return `#${f(0)}${f(8)}${f(4)}`.toUpperCase();
+        }
 
-                shapeType: document.getElementById('shape-type-select'),
-                points: document.getElementById('points-slider'),
-                ellipseX: document.getElementById('ellipse-x-slider'),
-                scale: document.getElementById('scale-slider'),
-                rotation: document.getElementById('rotation-slider'),
-                ellipseY: document.getElementById('ellipse-y-slider'),
-                
-                shapeH: document.getElementById('shape-hue'),
-                shapeS: document.getElementById('shape-sat'),
-                shapeL: document.getElementById('shape-lig'),
-                
-                imgH: document.getElementById('img-hue'),
-                imgS: document.getElementById('img-sat'),
-                imgL: document.getElementById('img-lig'),
-                imgFill: document.getElementById('img-fill-toggle'),
-
-                canvasH: document.getElementById('canvas-hue'),
-                canvasS: document.getElementById('canvas-sat'),
-                canvasL: document.getElementById('canvas-lig')
-            },
-            labels: {
-                baseScale: document.getElementById('base-scale-val'),
-                points: document.getElementById('points-val'),
-                ellipseX: document.getElementById('ellipse-x-val'),
-                scale: document.getElementById('scale-val'),
-                rotation: document.getElementById('rotation-val'),
-                ellipseY: document.getElementById('ellipse-y-val')
-            },
-            wrappers: {
-                points: document.getElementById('control-points'),
-                ellipseX: document.getElementById('control-ellipse-x'),
-                rotation: document.getElementById('control-rotation'),
-                ellipseY: document.getElementById('control-ellipse-y')
+        function hexToHsl(hex) {
+            hex = hex.replace(/^#/, '');
+            if (hex.length === 3) hex = hex.split('').map(x => x + x).join('');
+            if (hex.length !== 6) return null;
+            let r = parseInt(hex.substring(0, 2), 16) / 255;
+            let g = parseInt(hex.substring(2, 4), 16) / 255;
+            let b = parseInt(hex.substring(4, 6), 16) / 255;
+            let cmax = Math.max(r, g, b), cmin = Math.min(r, g, b);
+            let delta = cmax - cmin, h = 0, s = 0, l = (cmax + cmin) / 2;
+            if (delta !== 0) {
+                s = delta / (1 - Math.abs(2 * l - 1));
+                if (cmax === r) h = ((g - b) / delta) % 6;
+                else if (cmax === g) h = (b - r) / delta + 2;
+                else h = (r - g) / delta + 4;
             }
-        };
+            h = Math.round(h * 60);
+            if (h < 0) h += 360;
+            return { h, s: Math.round(s * 100), l: Math.round(l * 100) };
+        }
+
+        function toggleLock(key, btnEl) {
+            state.locks[key] = !state.locks[key];
+            const iconEl = btnEl.querySelector('i');
+            
+            if (state.locks[key]) {
+                btnEl.classList.remove('text-gray-400', 'hover:text-red-500');
+                btnEl.classList.add('text-red-500', 'hover:text-red-600', 'bg-red-50', 'dark:bg-red-900/30');
+                iconEl.setAttribute('data-feather', 'lock');
+            } else {
+                btnEl.classList.remove('text-red-500', 'hover:text-red-600', 'bg-red-50', 'dark:bg-red-900/30');
+                btnEl.classList.add('text-gray-400', 'hover:text-red-500');
+                iconEl.setAttribute('data-feather', 'unlock');
+            }
+            feather.replace();
+        }
+
+        function setupColorBinding(hEl, sEl, lEl, hexEl, stateKey) {
+            const updateUI = () => { 
+                hexEl.value = hslToHex(state[stateKey].h, state[stateKey].s, state[stateKey].l);
+                renderCanvas(); 
+            };
+            hEl.addEventListener('input', e => { state[stateKey].h = parseInt(e.target.value); updateUI(); });
+            sEl.addEventListener('input', e => { state[stateKey].s = parseInt(e.target.value); updateUI(); });
+            lEl.addEventListener('input', e => { state[stateKey].l = parseInt(e.target.value); updateUI(); });
+            
+            hexEl.addEventListener('change', e => {
+                const res = hexToHsl(e.target.value);
+                if (res) {
+                    state[stateKey] = res;
+                    hEl.value = res.h; sEl.value = res.s; lEl.value = res.l;
+                    renderCanvas();
+                } else {
+                    hexEl.value = hslToHex(state[stateKey].h, state[stateKey].s, state[stateKey].l);
+                }
+            });
+        }
 
         function initApp() {
-            buildUI();
-            setupEventListeners();
-            setupDraggable();
-            
-            regenerateIrregular(false); 
-            syncDOMWithState();
-            renderCanvas();
-        }
-
-        function setupDraggable() {
-            const shapes = [
-                { el: DOM.shapeContainer, stateRef: state.shape },
-                { el: DOM.baseContainer, stateRef: state.base }
-            ];
-
-            shapes.forEach(item => {
-                let isDragging = false;
-                let startX, startY, initialX, initialY;
-
-                const onMove = (e) => {
-                    if (!isDragging) return;
-                    e.preventDefault(); // Evita scroll da tela no celular
-                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                    
-                    item.stateRef.x = initialX + (clientX - startX);
-                    item.stateRef.y = initialY + (clientY - startY);
-                    
-                    renderCanvas();
-                };
-
-                const onUp = () => {
-                    if (!isDragging) return;
-                    isDragging = false;
-                    item.el.style.cursor = 'grab';
-                    document.removeEventListener('mousemove', onMove);
-                    document.removeEventListener('mouseup', onUp);
-                    document.removeEventListener('touchmove', onMove);
-                    document.removeEventListener('touchend', onUp);
-                };
-
-                const onDown = (e) => {
-                    if (e.type === 'mousedown' && e.button !== 0) return; // Apenas clique esquerdo
-                    isDragging = true;
-                    item.el.style.cursor = 'grabbing';
-                    
-                    startX = e.touches ? e.touches[0].clientX : e.clientX;
-                    startY = e.touches ? e.touches[0].clientY : e.clientY;
-                    initialX = item.stateRef.x || 0;
-                    initialY = item.stateRef.y || 0;
-
-                    document.addEventListener('mousemove', onMove, { passive: false });
-                    document.addEventListener('mouseup', onUp);
-                    document.addEventListener('touchmove', onMove, { passive: false });
-                    document.addEventListener('touchend', onUp);
-                };
-
-                item.el.style.cursor = 'grab';
-                item.el.addEventListener('mousedown', onDown);
-                item.el.addEventListener('touchstart', onDown, { passive: false });
-                
-                // Duplo clique para centralizar a forma
-                item.el.addEventListener('dblclick', () => {
-                    saveHistory();
-                    item.stateRef.x = 0;
-                    item.stateRef.y = 0;
-                    renderCanvas();
-                });
-            });
-        }
-
-        function buildUI() {
+            feather.replace();
             const artSelector = document.getElementById('art-selector');
-            artSelector.innerHTML = ''; // Limpa caso recarregue
-            
-            const createLoteContainer = (title) => {
-                const wrapper = document.createElement('div');
-                wrapper.innerHTML = `<p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 mt-2">${title}</p><div class="grid grid-cols-5 gap-1.5"></div>`;
-                artSelector.appendChild(wrapper);
-                return wrapper.querySelector('div');
-            };
-            
-            const lote1 = createLoteContainer('Completos (Cores Originais)');
-            const lote2 = createLoteContainer('Preenchidos (Cores Editáveis)');
-            const lote3 = createLoteContainer('Vazados (Efeito Recorte)');
-            const lotes = [lote1, lote2, lote3];
-
             arts.forEach((art, idx) => {
-                // UI de Seleção (Miniaturas das Imagens em Grid)
                 const btn = document.createElement('button');
                 btn.id = `btn-art-${idx}`;
+                btn.className = `flex flex-col items-center justify-center p-1 rounded border transition-all aspect-square relative overflow-hidden ${idx === state.artIndex ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' : 'bg-white dark:bg-slate-900 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800'}`;
+                btn.innerHTML = `
+                    <div class="w-full h-full bg-contain bg-center bg-no-repeat filter drop-shadow-sm pointer-events-none" style="background-image: url('${art.file}')"></div>
+                    <span class="absolute bottom-0 right-0 bg-black/60 text-white text-[8px] px-1 rounded-tl leading-tight font-medium">${idx + 1}</span>
+                `;
                 btn.title = art.name;
-                
-                // Estilo da moldura
-                btn.className = `aspect-square flex items-center justify-center rounded-lg border-2 overflow-hidden transition-all bg-white dark:bg-slate-800 relative group p-1 ${idx === state.artIndex ? 'border-indigo-600 shadow-md ring-2 ring-indigo-500/30' : 'border-transparent hover:border-indigo-300 dark:hover:border-indigo-700'}`;
-                
-                // Renderização da Miniatura
-                btn.innerHTML = `<div class="w-full h-full bg-contain bg-center bg-no-repeat transition-transform group-hover:scale-110 opacity-80 group-hover:opacity-100" style="background-image: url('${art.file}');" onerror="this.style.display='none'"></div>`;
-                
-                btn.onclick = () => selectArt(idx);
-                lotes[art.group - 1].appendChild(btn);
+                btn.onclick = () => setArt(idx);
+                artSelector.appendChild(btn);
             });
-            feather.replace();
+
+            setupColorBinding(document.getElementById('hue-slider'), document.getElementById('sat-slider'), document.getElementById('lig-slider'), document.getElementById('shape-hex-input'), 'shapeColor');
+            setupColorBinding(document.getElementById('img-hue-slider'), document.getElementById('img-sat-slider'), document.getElementById('img-lig-slider'), document.getElementById('img-hex-input'), 'imageColor');
+            setupColorBinding(document.getElementById('canvas-hue-slider'), document.getElementById('canvas-sat-slider'), document.getElementById('canvas-lig-slider'), document.getElementById('canvas-hex-input'), 'canvasColor');
+            setupColorBinding(document.getElementById('base-hue-slider'), document.getElementById('base-sat-slider'), document.getElementById('base-lig-slider'), document.getElementById('base-hex-input'), 'baseColor');
+
+            setupEventListeners();
+            setupDragAndDrop();
+            
+            for (let i = 0; i < 40; i++) state.irregularRadii.push(20 + Math.random() * 30);
+
+            syncDOMWithState();
+            renderCanvas();
+            
+            if(!sessionStorage.getItem('tutSeen')) {
+                setTimeout(openTutorial, 500);
+                sessionStorage.setItem('tutSeen', 'true');
+            }
         }
 
-        function toggleDarkMode() {
-            state.isDark = !state.isDark;
-            const html = document.documentElement;
-            const icon = document.getElementById('dark-icon');
-            
-            if (state.isDark) {
-                html.classList.add('dark');
-                icon.setAttribute('data-feather', 'sun');
-                // Ajusta automaticamente a cor do canvas para um tom escuro agradável
-                state.canvasColor = { h: 220, s: 20, l: 12 };
-            } else {
-                html.classList.remove('dark');
-                icon.setAttribute('data-feather', 'moon');
-                // Retorna canvas p/ claro
-                state.canvasColor = { h: 210, s: 20, l: 96 };
-            }
-            feather.replace();
+        function setupEventListeners() {
+            document.getElementById('points-slider').addEventListener('input', e => {
+                state.shapePoints = parseInt(e.target.value);
+                document.getElementById('points-val').textContent = state.shapePoints;
+                renderCanvas();
+            });
+
+            document.getElementById('scale-slider').addEventListener('input', e => {
+                state.shapeScale = parseInt(e.target.value);
+                document.getElementById('scale-val').textContent = state.shapeScale + '%';
+                renderCanvas();
+            });
+
+            document.getElementById('rotation-slider').addEventListener('input', e => {
+                state.shapeRotation = parseInt(e.target.value);
+                document.getElementById('rotation-val').textContent = state.shapeRotation + '°';
+                renderCanvas();
+            });
+
+            document.getElementById('ellipse-x-slider').addEventListener('input', e => {
+                state.ellipseX = parseInt(e.target.value);
+                document.getElementById('ellipse-x-val').textContent = state.ellipseX + '%';
+                renderCanvas();
+            });
+
+            document.getElementById('ellipse-y-slider').addEventListener('input', e => {
+                state.ellipseY = parseInt(e.target.value);
+                document.getElementById('ellipse-y-val').textContent = state.ellipseY + '%';
+                renderCanvas();
+            });
+
+            document.getElementById('img-fill-toggle').addEventListener('change', e => {
+                state.imageFill = e.target.checked;
+                renderCanvas();
+            });
+
+            document.getElementById('base-visible-toggle').addEventListener('change', e => {
+                state.baseVisible = e.target.checked;
+                renderCanvas();
+            });
+
+            document.getElementById('base-type-select').addEventListener('change', e => {
+                state.baseType = e.target.value;
+                renderCanvas();
+            });
+
+            document.getElementById('base-scale-slider').addEventListener('input', e => {
+                state.baseScale = parseInt(e.target.value);
+                renderCanvas();
+            });
+        }
+
+        let activeDraggable = null;
+        let dragOffset = { x: 0, y: 0 };
+
+        function setupDragAndDrop() {
+            const container = document.getElementById('art-container');
+            const shapeC = document.getElementById('art-shape');
+            const baseC = document.getElementById('art-base');
+
+            const startDrag = (e, targetName) => {
+                activeDraggable = targetName;
+                const clientX = e.clientX || e.touches[0].clientX;
+                const clientY = e.clientY || e.touches[0].clientY;
+                const currentOffset = targetName === 'shape' ? state.shapeOffset : state.baseOffset;
+                dragOffset.x = clientX - currentOffset.x;
+                dragOffset.y = clientY - currentOffset.y;
+                container.style.cursor = 'grabbing';
+                e.stopPropagation();
+            };
+
+            shapeC.addEventListener('mousedown', e => startDrag(e, 'shape'));
+            shapeC.addEventListener('touchstart', e => startDrag(e, 'shape'), {passive: false});
+            baseC.addEventListener('mousedown', e => startDrag(e, 'base'));
+            baseC.addEventListener('touchstart', e => startDrag(e, 'base'), {passive: false});
+
+            const onMove = e => {
+                if (!activeDraggable) return;
+                e.preventDefault(); 
+                const clientX = e.clientX || (e.touches ? e.touches[0].clientX : 0);
+                const clientY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
+                const newX = clientX - dragOffset.x;
+                const newY = clientY - dragOffset.y;
+
+                if (activeDraggable === 'shape') state.shapeOffset = { x: newX, y: newY };
+                else state.baseOffset = { x: newX, y: newY };
+                
+                renderCanvas();
+            };
+
+            const endDrag = () => { 
+                activeDraggable = null; 
+                container.style.cursor = 'grab';
+            };
+
+            window.addEventListener('mousemove', onMove, {passive: false});
+            window.addEventListener('touchmove', onMove, {passive: false});
+            window.addEventListener('mouseup', endDrag);
+            window.addEventListener('touchend', endDrag);
+
+            container.addEventListener('dblclick', () => {
+                state.shapeOffset = { x: 0, y: 0 };
+                state.baseOffset = { x: 0, y: 0 };
+                renderCanvas();
+            });
+        }
+
+        function setShapeType(type) {
+            saveShapeToHistory();
+            state.shapeType = type;
             syncDOMWithState();
             renderCanvas();
         }
 
-        function handleUpload(idx, event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                arts[idx].image = e.target.result;
-                const lbl = document.getElementById(`up-lbl-${idx}`);
-                lbl.innerHTML = `<i data-feather="check" class="w-4 h-4 text-emerald-500"></i>`;
-                feather.replace();
-                selectArt(idx);
+        function randomizeJustShape() {
+            if(!state.locks.shape) {
+                saveShapeToHistory();
+                if (Math.random() < 0.15) state.shapeType = 'circle';
+                else state.shapeType = shapeSequence[currentSequenceIndex++ % shapeSequence.length];
+                
+                state.shapePoints = Math.floor(Math.random() * 8) + 4;
+                state.shapeScale = Math.floor(Math.random() * 70) + 70;
+                state.shapeRotation = Math.floor(Math.random() * 360);
+                state.ellipseX = Math.floor(Math.random() * 70) + 70;
+                state.ellipseY = Math.floor(Math.random() * 70) + 70;
+                if (['complex', 'concave', 'irregular'].includes(state.shapeType)) regenerateIrregular(false);
+                syncDOMWithState();
+                renderCanvas();
             }
-            reader.readAsDataURL(file);
         }
 
-        function selectArt(idx) {
+        function setArt(idx) {
             state.artIndex = idx;
             arts.forEach((_, i) => {
                 const btn = document.getElementById(`btn-art-${i}`);
                 if (i === idx) {
-                    btn.className = 'aspect-square flex items-center justify-center rounded-lg border-2 overflow-hidden transition-all bg-white dark:bg-slate-800 relative group p-1 border-indigo-600 shadow-md ring-2 ring-indigo-500/30';
+                    btn.className = 'flex flex-col items-center justify-center p-1 rounded border transition-all aspect-square relative overflow-hidden bg-indigo-600 border-indigo-600 text-white shadow-md transform scale-105';
                 } else {
-                    btn.className = 'aspect-square flex items-center justify-center rounded-lg border-2 overflow-hidden transition-all bg-white dark:bg-slate-800 relative group p-1 border-transparent hover:border-indigo-300 dark:hover:border-indigo-700';
+                    btn.className = 'flex flex-col items-center justify-center p-1 rounded border transition-all aspect-square relative overflow-hidden bg-white dark:bg-slate-900 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800';
                 }
             });
+
+            if (arts[state.artIndex].group > 1) document.getElementById('img-color-section').classList.remove('hidden');
+            else document.getElementById('img-color-section').classList.add('hidden');
+
             renderCanvas();
         }
 
-        function setupEventListeners() {
-            // Fundo Base
-            DOM.inputs.baseVisible.addEventListener('change', e => { state.base.active = e.target.checked; renderCanvas(); updateSliderBackgrounds(); });
-            DOM.inputs.baseType.addEventListener('change', e => { state.base.type = e.target.value; renderCanvas(); });
-            DOM.inputs.baseScale.addEventListener('input', e => { state.base.scale = parseInt(e.target.value); DOM.labels.baseScale.textContent = state.base.scale + '%'; renderCanvas(); });
-
-            // Geometria
-            DOM.inputs.shapeType.addEventListener('change', e => { saveHistory(); state.shape.type = e.target.value; syncDOMWithState(); renderCanvas(); });
+        function regenerateIrregular(shouldRender = true) {
+            state.irregularRadii = [];
             
-            DOM.inputs.points.addEventListener('input', e => { 
-                state.shape.points = parseInt(e.target.value);
-                DOM.labels.points.textContent = state.shape.points;
-                renderCanvas(); 
-            });
-
-            DOM.inputs.ellipseX.addEventListener('input', e => { 
-                state.shape.ellipseX = parseInt(e.target.value);
-                DOM.labels.ellipseX.textContent = state.shape.ellipseX + '%';
-                renderCanvas(); 
-            });
-
-            DOM.inputs.scale.addEventListener('input', e => { 
-                state.shape.scale = parseInt(e.target.value); 
-                DOM.labels.scale.textContent = state.shape.scale + '%'; 
-                renderCanvas(); 
-            });
-
-            DOM.inputs.rotation.addEventListener('input', e => { 
-                state.shape.rotation = parseInt(e.target.value); 
-                DOM.labels.rotation.textContent = state.shape.rotation + '°'; 
-                renderCanvas(); 
-            });
-
-            DOM.inputs.ellipseY.addEventListener('input', e => { 
-                state.shape.ellipseY = parseInt(e.target.value);
-                DOM.labels.ellipseY.textContent = state.shape.ellipseY + '%';
-                renderCanvas(); 
-            });
-
-            // Toggle de Imagem (Preenchimento)
-            DOM.inputs.imgFill.addEventListener('change', e => {
-                state.imageFill = e.target.checked;
-                updateSliderBackgrounds();
-                renderCanvas();
-            });
-
-            // Cores (Helper para vincular HSL genérico refatorado)
-            // Agora usamos 'stateKey' para que o listener sempre procure o objeto atual dentro de 'state'
-            const bindHSL = (hEl, sEl, lEl, stateKey) => {
-                hEl.addEventListener('input', e => { state[stateKey].h = parseInt(e.target.value); updateSliderBackgrounds(); renderCanvas(); });
-                sEl.addEventListener('input', e => { state[stateKey].s = parseInt(e.target.value); updateSliderBackgrounds(); renderCanvas(); });
-                lEl.addEventListener('input', e => { state[stateKey].l = parseInt(e.target.value); updateSliderBackgrounds(); renderCanvas(); });
-            };
-
-            bindHSL(DOM.inputs.baseH, DOM.inputs.baseS, DOM.inputs.baseL, 'baseColor');
-            bindHSL(DOM.inputs.shapeH, DOM.inputs.shapeS, DOM.inputs.shapeL, 'shapeColor');
-            bindHSL(DOM.inputs.imgH, DOM.inputs.imgS, DOM.inputs.imgL, 'imageColor');
-            bindHSL(DOM.inputs.canvasH, DOM.inputs.canvasS, DOM.inputs.canvasL, 'canvasColor');
-        }
-
-        function regenerateIrregular(triggerRender = true) {
-            state.shape.irregularRadii = [];
-            // Gera matriz infinita base para suportar slider indo e vindo sem perder identidade
-            // Armazena valores de 0 a 1 para ser flexível entre côncavo e convexo
+            // Removemos a onda matemática limitadora para garantir que CADA clique crie 
+            // um formato 100% inédito do zero, sem parecer um círculo amassado.
+            const style = Math.random();
+            let currentRadius = 10 + Math.random() * 40;
+            
             for (let i = 0; i < 40; i++) {
-                state.shape.irregularRadii.push(Math.random()); 
-            }
-            if (triggerRender) renderCanvas();
-        }
-
-        function calculateClipPath(type, points, radii) {
-            if (type === 'circle') return 'circle(50% at 50% 50%)';
-            const pathPoints = [];
-            const center = { x: 50, y: 50 };
-            const outerRadius = 50; 
-            
-            // Estrela e Côncavo geram vértices extras (internos) para criar as pontas/cavidades
-            const isDoublePoints = (type === 'star' || type === 'concave');
-            const totalSteps = points * (isDoublePoints ? 2 : 1);
-            
-            for (let i = 0; i < totalSteps; i++) {
-                let angle = (i / totalSteps) * 2 * Math.PI - Math.PI / 2;
-                let r = outerRadius;
-                
-                if (type === 'star') {
-                    if (i % 2 !== 0) r = 22;
-                } else if (type === 'concave') {
-                    // Polígono Côncavo: Cavidades profundas sem cruzar linhas (ângulo intacto)
-                    r = 15 + (radii[i] || 0.5) * 35;
-                } else if (type === 'convex') {
-                    // Polígono Convexo: Variações mínimas de raio mantendo os ângulos < 180°
-                    r = 45 + (radii[i] || 0.5) * 5;
-                } else if (type === 'complex') {
-                    // Polígono Complexo (Auto-intersecção): Bagunçamos os ângulos intencionalmente
-                    // Isso faz com que as linhas se cruzem formando intersecções entre vértices não consecutivos
-                    const angleOffset = ((radii[i] || 0.5) - 0.5) * (Math.PI * 1.5);
-                    angle += angleOffset;
-                    r = 20 + (radii[i] || 0.5) * 30; // Raio variável para aspecto orgânico e caótico
+                if (style < 0.33) {
+                    // Estilo 1: Picos extremos e vales profundos alternados (Efeito estrela quebrada)
+                    state.irregularRadii.push(Math.random() > 0.5 ? (40 + Math.random() * 10) : (5 + Math.random() * 15));
+                } else if (style < 0.66) {
+                    // Estilo 2: Caos total, todos os pontos em posições imprevistas (Manchas radicais)
+                    state.irregularRadii.push(5 + Math.random() * 45);
+                } else {
+                    // Estilo 3: Blocos assimétricos (Gera grandes massas disformes sem pontas)
+                    if (Math.random() < 0.4) currentRadius = 5 + Math.random() * 45;
+                    state.irregularRadii.push(currentRadius);
                 }
-
-                pathPoints.push(`${(center.x + r * Math.cos(angle)).toFixed(2)}% ${(center.y + r * Math.sin(angle)).toFixed(2)}%`);
             }
-            return `polygon(${pathPoints.join(', ')})`;
+            if (shouldRender) renderCanvas();
         }
 
-        function updateSliderBackgrounds() {
-            const applyVisuals = (h, s, l, sEl, lEl) => {
-                sEl.style.background = `linear-gradient(to right, hsl(${h}, 0%, ${l}%), hsl(${h}, 100%, ${l}%))`;
-                lEl.style.background = `linear-gradient(to right, hsl(${h}, ${s}%, 0%), hsl(${h}, ${s}%, 50%), hsl(${h}, ${s}%, 100%))`;
-            };
-
-            applyVisuals(state.baseColor.h, state.baseColor.s, state.baseColor.l, DOM.inputs.baseS, DOM.inputs.baseL);
-            applyVisuals(state.shapeColor.h, state.shapeColor.s, state.shapeColor.l, DOM.inputs.shapeS, DOM.inputs.shapeL);
-            applyVisuals(state.imageColor.h, state.imageColor.s, state.imageColor.l, DOM.inputs.imgS, DOM.inputs.imgL);
-            applyVisuals(state.canvasColor.h, state.canvasColor.s, state.canvasColor.l, DOM.inputs.canvasS, DOM.inputs.canvasL);
-
-            // Interface base (desativa visualmente se invisível)
-            if(!state.base.active) {
-                DOM.baseControls.style.opacity = '0.3';
-                DOM.baseControls.style.pointerEvents = 'none';
-            } else {
-                DOM.baseControls.style.opacity = '1';
-                DOM.baseControls.style.pointerEvents = 'auto';
+        function generateClipPath(type, points) {
+            if (type === 'circle') return 'circle(50% at 50% 50%)';
+            let path = [];
+            const centerX = 50, centerY = 50;
+            
+            for (let i = 0; i < points * 2; i++) {
+                const angle = (i / (points * 2)) * 2 * Math.PI - Math.PI / 2;
+                let r = 50; 
+                
+                if (type === 'polygon') {
+                    if (i % 2 !== 0) r = 45; 
+                } else if (type === 'star') {
+                    if (i % 2 !== 0) r = 22; 
+                } else if (type === 'concave') {
+                    if (i % 2 !== 0) r = 8;
+                } else if (type === 'irregular') {
+                    r = state.irregularRadii[i] || 35;
+                    path.push(`${(centerX + r * Math.cos(angle)).toFixed(2)}% ${(centerY + r * Math.sin(angle)).toFixed(2)}%`);
+                    continue;
+                } else if (type === 'complex') {
+                    // Deslocamento de ângulo agressivo para forçar cruzamentos selvagens
+                    const chaoticAngle = angle + (i % 2 === 0 ? 1.8 : -1.8);
+                    let r = state.irregularRadii[i] || 35;
+                    
+                    // Como os raios agora são gerados de forma absurdamente aleatória do zero,
+                    // apenas aplicamos eles cruzando as linhas de ponta a ponta.
+                    path.push(`${(centerX + r * Math.cos(chaoticAngle)).toFixed(2)}% ${(centerY + r * Math.sin(chaoticAngle)).toFixed(2)}%`);
+                    continue; 
+                }
+                
+                path.push(`${(centerX + r * Math.cos(angle)).toFixed(2)}% ${(centerY + r * Math.sin(angle)).toFixed(2)}%`);
+                if (type === 'polygon') i++; 
             }
-
-            // Escurece os sliders de imagem se o preenchimento estiver desligado
-            if(!state.imageFill) {
-                DOM.imgColorSliders.style.opacity = '0.3';
-                DOM.imgColorSliders.style.pointerEvents = 'none';
-            } else {
-                DOM.imgColorSliders.style.opacity = '1';
-                DOM.imgColorSliders.style.pointerEvents = 'auto';
-            }
+            return `polygon(${path.join(', ')})`;
         }
 
         function syncDOMWithState() {
-            DOM.inputs.baseVisible.checked = state.base.active;
-            DOM.inputs.baseType.value = state.base.type;
-            DOM.inputs.baseScale.value = state.base.scale;
-            DOM.inputs.baseH.value = state.baseColor.h; DOM.inputs.baseS.value = state.baseColor.s; DOM.inputs.baseL.value = state.baseColor.l;
+            const shapeTypes = ['star', 'polygon', 'concave', 'irregular', 'complex', 'circle'];
+            shapeTypes.forEach(type => {
+                const btn = document.getElementById(`btn-shape-${type}`);
+                if (btn) {
+                    if (state.shapeType === type) {
+                        btn.classList.remove('bg-white', 'dark:bg-slate-900', 'border-gray-200', 'text-gray-600', 'dark:text-gray-400');
+                        btn.classList.add('bg-indigo-50', 'dark:bg-indigo-900/30', 'border-indigo-300', 'dark:border-indigo-700', 'text-indigo-700', 'dark:text-indigo-400');
+                    } else {
+                        btn.classList.remove('bg-indigo-50', 'dark:bg-indigo-900/30', 'border-indigo-300', 'dark:border-indigo-700', 'text-indigo-700', 'dark:text-indigo-400');
+                        btn.classList.add('bg-white', 'dark:bg-slate-900', 'border-gray-200', 'text-gray-600', 'dark:text-gray-400');
+                    }
+                }
+            });
 
-            DOM.inputs.shapeType.value = state.shape.type;
-            DOM.inputs.points.value = state.shape.points;
-            DOM.inputs.ellipseX.value = state.shape.ellipseX;
-            DOM.inputs.scale.value = state.shape.scale;
-            DOM.inputs.rotation.value = state.shape.rotation;
-            DOM.inputs.ellipseY.value = state.shape.ellipseY;
-            
-            DOM.inputs.shapeH.value = state.shapeColor.h; DOM.inputs.shapeS.value = state.shapeColor.s; DOM.inputs.shapeL.value = state.shapeColor.l;
-            DOM.inputs.imgH.value = state.imageColor.h; DOM.inputs.imgS.value = state.imageColor.s; DOM.inputs.imgL.value = state.imageColor.l;
-            DOM.inputs.canvasH.value = state.canvasColor.h; DOM.inputs.canvasS.value = state.canvasColor.s; DOM.inputs.canvasL.value = state.canvasColor.l;
-            
-            DOM.inputs.imgFill.checked = state.imageFill;
-            
-            DOM.labels.baseScale.textContent = state.base.scale + '%';
-            DOM.labels.points.textContent = state.shape.points;
-            DOM.labels.ellipseX.textContent = state.shape.ellipseX + '%';
-            DOM.labels.scale.textContent = state.shape.scale + '%';
-            DOM.labels.rotation.textContent = state.shape.rotation + '°';
-            DOM.labels.ellipseY.textContent = state.shape.ellipseY + '%';
-            
-            const isOrganic = state.shape.type === 'concave' || state.shape.type === 'convex' || state.shape.type === 'complex';
-            document.getElementById('btn-regerar-irregular').classList.toggle('hidden', !isOrganic);
+            document.getElementById('points-slider').value = state.shapePoints;
+            document.getElementById('scale-slider').value = state.shapeScale;
+            document.getElementById('rotation-slider').value = state.shapeRotation;
+            document.getElementById('ellipse-x-slider').value = state.ellipseX;
+            document.getElementById('ellipse-y-slider').value = state.ellipseY;
 
-            // Alternância de controles (Círculo/Elipse vs Polígonos)
-            if (state.shape.type === 'circle') {
-                DOM.wrappers.points.classList.add('hidden');
-                DOM.wrappers.rotation.classList.add('hidden');
-                DOM.wrappers.ellipseX.classList.remove('hidden');
-                DOM.wrappers.ellipseY.classList.remove('hidden');
+            document.getElementById('points-val').textContent = state.shapePoints;
+            document.getElementById('scale-val').textContent = state.shapeScale + '%';
+            document.getElementById('rotation-val').textContent = state.shapeRotation + '°';
+            document.getElementById('ellipse-x-val').textContent = state.ellipseX + '%';
+            document.getElementById('ellipse-y-val').textContent = state.ellipseY + '%';
+
+            document.getElementById('hue-slider').value = state.shapeColor.h;
+            document.getElementById('sat-slider').value = state.shapeColor.s;
+            document.getElementById('lig-slider').value = state.shapeColor.l;
+            document.getElementById('shape-hex-input').value = hslToHex(state.shapeColor.h, state.shapeColor.s, state.shapeColor.l);
+
+            if (state.shapeType === 'circle') {
+                document.getElementById('points-wrapper').classList.add('hidden');
+                document.getElementById('scale-rotation-wrapper').classList.add('hidden');
+                document.getElementById('ellipse-controls').classList.remove('hidden');
+                document.getElementById('btn-regerar-irregular').classList.add('hidden');
             } else {
-                DOM.wrappers.points.classList.remove('hidden');
-                DOM.wrappers.rotation.classList.remove('hidden');
-                DOM.wrappers.ellipseX.classList.add('hidden');
-                DOM.wrappers.ellipseY.classList.add('hidden');
+                document.getElementById('points-wrapper').classList.remove('hidden');
+                document.getElementById('scale-rotation-wrapper').classList.remove('hidden');
+                document.getElementById('ellipse-controls').classList.add('hidden');
+                if (['complex', 'concave', 'irregular'].includes(state.shapeType)) {
+                    document.getElementById('btn-regerar-irregular').classList.remove('hidden');
+                } else {
+                    document.getElementById('btn-regerar-irregular').classList.add('hidden');
+                }
             }
-
-            updateSliderBackgrounds();
         }
 
         function renderCanvas() {
-            const art = arts[state.artIndex];
-            const isCustomizable = art.group === 2 || art.group === 3;
+            const shapeC = document.getElementById('art-shape');
+            const baseC = document.getElementById('art-base');
+            const imgC = document.getElementById('art-image');
 
-            // --- 1. Atualizar Fundo do Canvas ---
-            DOM.mainCanvas.style.backgroundColor = `hsl(${state.canvasColor.h}, ${state.canvasColor.s}%, ${state.canvasColor.l}%)`;
-
-            // --- 2. Atualizar UI de Controle ---
-            DOM.imgGroup2Controls.classList.toggle('hidden', !isCustomizable);
-
-            // --- 3. Renderizar Imagem (Lógica Complexa de Mascaramento/Knockout) ---
-            DOM.imageContainer.innerHTML = '';
-            DOM.imageContainer.classList.remove('bg-white/30', 'dark:bg-slate-800/30', 'border-2', 'border-dashed', 'backdrop-blur-sm');
-
-            if (isCustomizable) {
-                // MODO SÓLIDO/VAZADO: Aplica a imagem como MÁSCARA para colorir.
-                DOM.imageContainer.style.backgroundImage = 'none';
-                DOM.imageContainer.style.webkitMaskImage = `url('${art.file}')`;
-                DOM.imageContainer.style.webkitMaskSize = 'contain';
-                DOM.imageContainer.style.webkitMaskPosition = 'center';
-                DOM.imageContainer.style.webkitMaskRepeat = 'no-repeat';
-
-                if (state.imageFill) {
-                    // Preenchido: Aplica cor
-                    DOM.imageContainer.style.backgroundColor = `hsl(${state.imageColor.h}, ${state.imageColor.s}%, ${state.imageColor.l}%)`;
-                    DOM.imageContainer.style.mixBlendMode = 'normal';
-                } else {
-                    // VAZADO (Knockout): O preto na máscara corta a camada 'isolate' pai, apagando a forma de fundo.
-                    DOM.imageContainer.style.backgroundColor = '#000000';
-                    DOM.imageContainer.style.mixBlendMode = 'destination-out';
-                }
+            if (state.baseVisible) {
+                baseC.style.display = 'block';
+                baseC.style.backgroundColor = hslToHex(state.baseColor.h, state.baseColor.s, state.baseColor.l);
+                baseC.style.width = state.baseScale + '%';
+                baseC.style.height = state.baseScale + '%';
+                baseC.style.transform = `translate(${state.baseOffset.x}px, ${state.baseOffset.y}px)`;
+                if (state.baseType === 'circle') baseC.style.borderRadius = '50%';
+                else if (state.baseType === 'rounded') baseC.style.borderRadius = '24px';
+                else baseC.style.borderRadius = '0px';
             } else {
-                // MODO NORMAL (Lote 1)
-                DOM.imageContainer.style.webkitMaskImage = 'none';
-                DOM.imageContainer.style.backgroundColor = 'transparent';
-                DOM.imageContainer.style.mixBlendMode = 'normal';
-                DOM.imageContainer.style.backgroundImage = `url('${art.file}')`;
+                baseC.style.display = 'none';
             }
 
-            // --- 4. Atualizar Forma Destaque ---
-            const path = calculateClipPath(state.shape.type, state.shape.points, state.shape.irregularRadii);
-            DOM.shapeContainer.style.clipPath = path;
-            DOM.shapeContainer.style.backgroundColor = `hsl(${state.shapeColor.h}, ${state.shapeColor.s}%, ${state.shapeColor.l}%)`;
-            DOM.shapeContainer.style.transform = `translate(${state.shape.x}px, ${state.shape.y}px) scale(${state.shape.scale / 100}) rotate(${state.shape.rotation}deg)`;
-
-            // --- 5. Renderizar Fundo Base ---
-            if (state.base.active) {
-                DOM.baseContainer.style.display = 'block';
-                DOM.baseContainer.style.backgroundColor = `hsl(${state.baseColor.h}, ${state.baseColor.s}%, ${state.baseColor.l}%)`;
-                DOM.baseContainer.style.transform = `translate(${state.base.x}px, ${state.base.y}px) scale(${state.base.scale / 100})`;
-                
-                if (state.base.type === 'circle') DOM.baseContainer.style.clipPath = 'circle(50% at 50% 50%)';
-                else if (state.base.type === 'square') DOM.baseContainer.style.clipPath = 'inset(0%)';
-                else if (state.base.type === 'rounded') DOM.baseContainer.style.clipPath = 'inset(0% round 15%)';
+            shapeC.style.clipPath = generateClipPath(state.shapeType, state.shapePoints);
+            shapeC.style.backgroundColor = hslToHex(state.shapeColor.h, state.shapeColor.s, state.shapeColor.l);
+            
+            if (state.shapeType === 'circle') {
+                shapeC.style.transform = `translate(${state.shapeOffset.x}px, ${state.shapeOffset.y}px) scaleX(${state.ellipseX / 100}) scaleY(${state.ellipseY / 100})`;
             } else {
-                DOM.baseContainer.style.display = 'none';
+                shapeC.style.transform = `translate(${state.shapeOffset.x}px, ${state.shapeOffset.y}px) scale(${state.shapeScale / 100}) rotate(${state.shapeRotation}deg)`;
             }
+
+            const currentArt = arts[state.artIndex];
+            imgC.style.backgroundImage = `url('${currentArt.file}')`;
+            
+            if (currentArt.group > 1 && state.imageFill) {
+                imgC.style.backgroundColor = hslToHex(state.imageColor.h, state.imageColor.s, state.imageColor.l);
+                imgC.style.webkitMaskImage = `url('${currentArt.file}')`;
+                imgC.style.maskImage = `url('${currentArt.file}')`;
+                imgC.style.webkitMaskSize = 'contain';
+                imgC.style.maskSize = 'contain';
+                imgC.style.webkitMaskRepeat = 'no-repeat';
+                imgC.style.maskRepeat = 'no-repeat';
+            } else {
+                imgC.style.backgroundColor = 'transparent';
+                imgC.style.webkitMaskImage = 'none';
+                imgC.style.maskImage = 'none';
+            }
+
+            document.getElementById('main-canvas-area').style.backgroundColor = hslToHex(state.canvasColor.h, state.canvasColor.s, state.canvasColor.l);
         }
 
-        function calculateClipPath(type, points, radii) {
-            if (type === 'circle') return `ellipse(${state.shape.ellipseX}% ${state.shape.ellipseY}% at 50% 50%)`;
-            
-            const pathPoints = [];
-            const center = { x: 50, y: 50 };
-            const outerRadius = 50; 
-            
-            // Estrela e Côncavo geram vértices extras (internos) para criar as pontas/cavidades
-            const isDoublePoints = (type === 'star' || type === 'concave');
-            const totalSteps = points * (isDoublePoints ? 2 : 1);
-            
-            for (let i = 0; i < totalSteps; i++) {
-                let angle = (i / totalSteps) * 2 * Math.PI - Math.PI / 2;
-                let r = outerRadius;
-                
-                if (type === 'star') {
-                    if (i % 2 !== 0) r = 22;
-                } else if (type === 'concave') {
-                    // Polígono Côncavo: Cavidades profundas sem cruzar linhas (ângulo intacto)
-                    r = 15 + (radii[i] || 0.5) * 35;
-                } else if (type === 'convex') {
-                    // Polígono Convexo: Variações mínimas de raio mantendo os ângulos < 180°
-                    r = 45 + (radii[i] || 0.5) * 5;
-                } else if (type === 'complex') {
-                    // Polígono Complexo (Auto-intersecção): Bagunçamos os ângulos intencionalmente
-                    const angleOffset = ((radii[i] || 0.5) - 0.5) * (Math.PI * 1.5);
-                    angle += angleOffset;
-                    r = 20 + (radii[i] || 0.5) * 30;
-                }
-
-                pathPoints.push(`${(center.x + r * Math.cos(angle)).toFixed(2)}% ${(center.y + r * Math.sin(angle)).toFixed(2)}%`);
-            }
-            return `polygon(${pathPoints.join(', ')})`;
+        function randomizeShapeColor() {
+            state.shapeColor.h = Math.floor(Math.random() * 360);
+            state.shapeColor.s = Math.floor(Math.random() * 60) + 40;
+            state.shapeColor.l = Math.floor(Math.random() * 60) + 30;
+            syncDOMWithState();
+            renderCanvas();
         }
 
-        function saveHistory() {
-            shapeHistory.push(JSON.parse(JSON.stringify(state.shape)));
-            if (shapeHistory.length > MAX_HISTORY) shapeHistory.shift();
+        function saveShapeToHistory() {
+            shapeHistory.push({
+                shapeType: state.shapeType,
+                shapePoints: state.shapePoints,
+                shapeScale: state.shapeScale,
+                shapeRotation: state.shapeRotation,
+                ellipseX: state.ellipseX,
+                ellipseY: state.ellipseY,
+                irregularRadii: [...state.irregularRadii]
+            });
+            if (shapeHistory.length > 10) shapeHistory.shift();
             document.getElementById('btn-undo-shape').classList.remove('hidden');
         }
 
         function undoShape() {
-            if (shapeHistory.length === 0) return;
-            state.shape = shapeHistory.pop();
-            syncDOMWithState(); renderCanvas();
-            if (shapeHistory.length === 0) document.getElementById('btn-undo-shape').classList.add('hidden');
-        }
-
-        function randomizeShape() {
-            saveHistory();
-            state.shape.type = Math.random() < 0.15 ? 'circle' : shapeSequence[(currentSequenceIndex++) % shapeSequence.length];
-            state.shape.points = Math.floor(Math.random() * 9) + 4;
-            state.shape.ellipseX = Math.floor(Math.random() * 30) + 20; // 20 a 50
-            state.shape.ellipseY = Math.floor(Math.random() * 30) + 20;
-            state.shape.scale = Math.floor(Math.random() * 70) + 70; // 70 a 140
-            state.shape.rotation = Math.floor(Math.random() * 360);
-            
-            const isOrganic = state.shape.type === 'concave' || state.shape.type === 'convex' || state.shape.type === 'complex';
-            if (isOrganic) regenerateIrregular(false);
-            
-            syncDOMWithState(); renderCanvas();
-        }
-
-        const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-
-        function randomizeShapeColor() {
-            state.shapeColor = { h: rand(0,360), s: rand(40,100), l: rand(30,70) };
-            syncDOMWithState();
-            renderCanvas();
+            if (shapeHistory.length > 0) {
+                const prev = shapeHistory.pop();
+                state.shapeType = prev.shapeType;
+                state.shapePoints = prev.shapePoints;
+                state.shapeScale = prev.shapeScale;
+                state.shapeRotation = prev.shapeRotation;
+                state.ellipseX = prev.ellipseX;
+                state.ellipseY = prev.ellipseY;
+                state.irregularRadii = [...prev.irregularRadii];
+                syncDOMWithState();
+                renderCanvas();
+                if (shapeHistory.length === 0) document.getElementById('btn-undo-shape').classList.add('hidden');
+            }
         }
 
         function randomizeAll() {
-            // Sorteia entre os 15 espaços pré-carregados
-            selectArt(rand(0, 14));
+            if(!state.locks.art) {
+                const randomArt = arts[Math.floor(Math.random() * arts.length)];
+                setArt(randomArt.id);
+            }
             
-            randomizeShape();
-            
-            state.shapeColor = { h: rand(0,360), s: rand(40,100), l: rand(30,70) };
-            state.imageColor = { h: rand(0,360), s: rand(40,100), l: rand(30,70) };
+            if(!state.locks.shape) {
+                saveShapeToHistory();
+                if (Math.random() < 0.15) state.shapeType = 'circle';
+                else state.shapeType = shapeSequence[currentSequenceIndex++ % shapeSequence.length];
+                
+                state.shapePoints = Math.floor(Math.random() * 8) + 4;
+                state.shapeScale = Math.floor(Math.random() * 70) + 70;
+                state.shapeRotation = Math.floor(Math.random() * 360);
+                state.ellipseX = Math.floor(Math.random() * 70) + 70;
+                state.ellipseY = Math.floor(Math.random() * 70) + 70;
+                if (['complex', 'concave', 'irregular'].includes(state.shapeType)) regenerateIrregular(false);
+            }
+
+            if(!state.locks.shapeColor) {
+                state.shapeColor.h = Math.floor(Math.random() * 360);
+                state.shapeColor.s = Math.floor(Math.random() * 60) + 40;
+                state.shapeColor.l = Math.floor(Math.random() * 60) + 30;
+            }
+
+            if(!state.locks.imgColor && arts[state.artIndex].group > 1) {
+                state.imageColor.h = Math.floor(Math.random() * 360);
+                state.imageColor.s = Math.floor(Math.random() * 60) + 40;
+                state.imageColor.l = Math.floor(Math.random() * 60) + 30;
+                document.getElementById('img-hue-slider').value = state.imageColor.h;
+                document.getElementById('img-sat-slider').value = state.imageColor.s;
+                document.getElementById('img-lig-slider').value = state.imageColor.l;
+                document.getElementById('img-hex-input').value = hslToHex(state.imageColor.h, state.imageColor.s, state.imageColor.l);
+            }
 
             syncDOMWithState();
             renderCanvas();
         }
 
-        function downloadImage() {
-            // Mostra status de carregando no botão
-            const btn = document.querySelector('button[onclick="downloadImage()"]');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i data-feather="loader" class="w-4 h-4 animate-spin"></i> Gerando...';
-            feather.replace();
+        function openTutorial() {
+            const modal = document.getElementById('tutorial-modal');
+            const content = document.getElementById('tutorial-content');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.classList.add('opacity-100');
+            setTimeout(() => {
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
+            }, 10);
+            tutCurrentStep = 1;
+            updateTutorialUI();
+        }
 
-            const container = document.getElementById('art-container');
-            const rect = container.getBoundingClientRect();
+        function closeTutorial() {
+            const modal = document.getElementById('tutorial-modal');
+            const content = document.getElementById('tutorial-content');
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.remove('opacity-100');
+                modal.classList.add('opacity-0', 'pointer-events-none');
+            }, 300);
+        }
+
+        function nextStep() {
+            if(tutCurrentStep < 5) { tutCurrentStep++; updateTutorialUI(); }
+            else { closeTutorial(); }
+        }
+        function prevStep() {
+            if(tutCurrentStep > 1) { tutCurrentStep--; updateTutorialUI(); }
+        }
+
+        function updateTutorialUI() {
+            for(let i=1; i<=5; i++) {
+                const el = document.getElementById(`tut-step-${i}`);
+                if(i === tutCurrentStep) el.classList.add('active');
+                else el.classList.remove('active');
+            }
+            document.getElementById('tut-prev').disabled = tutCurrentStep === 1;
+            document.getElementById('tut-next').innerText = tutCurrentStep === 5 ? 'Começar' : 'Próximo';
             
-            // Exportação Nativa via Canvas (Ignora bugs do html2canvas)
-            const exportScale = 3; 
+            const dotsContainer = document.getElementById('tut-dots');
+            dotsContainer.innerHTML = '';
+            for(let i=1; i<=5; i++) {
+                const dot = document.createElement('div');
+                dot.className = `w-2 h-2 rounded-full transition-colors ${i === tutCurrentStep ? 'bg-indigo-600' : 'bg-gray-300 dark:bg-slate-600'}`;
+                dotsContainer.appendChild(dot);
+            }
+        }
+
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+        }
+
+        function downloadImage() {
             const canvas = document.createElement('canvas');
-            canvas.width = rect.width * exportScale;
-            canvas.height = rect.height * exportScale;
+            canvas.width = 1500;
+            canvas.height = 1500;
             const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 1500, 1500);
 
-            const cx = canvas.width / 2;
-            const cy = canvas.height / 2;
-
-            function drawBaseShape() {
-                if (!state.base.active) return;
+            if (state.baseVisible) {
                 ctx.save();
-                ctx.translate(cx + state.base.x * exportScale, cy + state.base.y * exportScale);
-                ctx.scale(state.base.scale / 100, state.base.scale / 100);
-                
-                const bw = canvas.width * 0.9;
-                const bh = canvas.height * 0.9;
-                
-                ctx.fillStyle = `hsl(${state.baseColor.h}, ${state.baseColor.s}%, ${state.baseColor.l}%)`;
-                ctx.shadowColor = 'rgba(0,0,0,0.1)';
-                ctx.shadowBlur = 15 * exportScale;
-                ctx.shadowOffsetY = 10 * exportScale;
-                
+                ctx.translate(750 + (state.baseOffset.x * 3.5), 750 + (state.baseOffset.y * 3.5));
+                const size = (state.baseScale / 100) * 1100;
+                ctx.fillStyle = hslToHex(state.baseColor.h, state.baseColor.s, state.baseColor.l);
                 ctx.beginPath();
-                if (state.base.type === 'circle') {
-                    ctx.arc(0, 0, bw / 2, 0, Math.PI * 2);
-                } else if (state.base.type === 'square') {
-                    ctx.rect(-bw / 2, -bh / 2, bw, bh);
-                } else if (state.base.type === 'rounded') {
-                    if (ctx.roundRect) {
-                        ctx.roundRect(-bw / 2, -bh / 2, bw, bh, bw * 0.15);
-                    } else { // Fallback navegadores antigos
-                        const r = bw * 0.15; const x = -bw / 2; const y = -bh / 2;
-                        ctx.moveTo(x + r, y);
-                        ctx.arcTo(x + bw, y, x + bw, y + bh, r);
-                        ctx.arcTo(x + bw, y + bh, x, y + bh, r);
-                        ctx.arcTo(x, y + bh, x, y, r);
-                        ctx.arcTo(x, y, x + bw, y, r);
-                    }
-                }
+                if (state.baseType === 'circle') ctx.arc(0, 0, size / 2, 0, Math.PI * 2);
+                else if (state.baseType === 'rounded') ctx.roundRect(-size/2, -size/2, size, size, 80);
+                else ctx.rect(-size/2, -size/2, size, size);
                 ctx.fill();
                 ctx.restore();
             }
 
-            function drawArtShape() {
-                ctx.save();
-                ctx.translate(cx + state.shape.x * exportScale, cy + state.shape.y * exportScale);
-                ctx.scale(state.shape.scale / 100, state.shape.scale / 100);
-                ctx.rotate((state.shape.rotation * Math.PI) / 180);
-                
-                const aw = canvas.width * 0.8;
-                const ah = canvas.height * 0.8;
-                
-                ctx.fillStyle = `hsl(${state.shapeColor.h}, ${state.shapeColor.s}%, ${state.shapeColor.l}%)`;
-                ctx.shadowColor = 'rgba(0,0,0,0.25)';
-                ctx.shadowBlur = 25 * exportScale;
-                ctx.shadowOffsetY = 25 * exportScale;
-
-                ctx.beginPath();
-                
-                if (state.shape.type === 'circle') {
-                    const rx = (state.shape.ellipseX / 100) * aw; 
-                    const ry = (state.shape.ellipseY / 100) * ah;
-                    if (ctx.ellipse) {
-                        ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
-                    } else { 
-                        ctx.arc(0, 0, rx, 0, Math.PI * 2); 
+            ctx.save();
+            ctx.translate(750 + (state.shapeOffset.x * 3.5), 750 + (state.shapeOffset.y * 3.5));
+            if (state.shapeType === 'circle') {
+                ctx.scale(state.ellipseX / 100, state.ellipseY / 100);
+            } else {
+                ctx.rotate((state.shapeRotation * Math.PI) / 180);
+                const sc = state.shapeScale / 100;
+                ctx.scale(sc, sc);
+            }
+            
+            ctx.fillStyle = hslToHex(state.shapeColor.h, state.shapeColor.s, state.shapeColor.l);
+            ctx.beginPath();
+            
+            if (state.shapeType === 'circle') {
+                ctx.arc(0, 0, 600, 0, Math.PI * 2);
+            } else {
+                const points = state.shapePoints;
+                const count = (state.shapeType === 'polygon') ? points : points * 2;
+                for (let i = 0; i < count; i++) {
+                    const angle = (i / count) * 2 * Math.PI - Math.PI / 2;
+                    let r = 600;
+                    if (state.shapeType === 'star' && i % 2 !== 0) r = 264;
+                    else if (state.shapeType === 'concave' && i % 2 !== 0) r = 96;
+                    else if (state.shapeType === 'irregular') {
+                        r = (state.irregularRadii[i] || 35) * 12;
+                        const x = r * Math.cos(angle);
+                        const y = r * Math.sin(angle);
+                        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                        continue;
                     }
-                } else {
-                    const points = state.shape.points;
-                    const type = state.shape.type;
-                    const radii = state.shape.irregularRadii;
-                    const isDoublePoints = (type === 'star' || type === 'concave');
-                    const totalSteps = points * (isDoublePoints ? 2 : 1);
-                    
-                    for (let i = 0; i < totalSteps; i++) {
-                        let angle = (i / totalSteps) * 2 * Math.PI - Math.PI / 2;
-                        let rPercent = 50; 
+                    else if (state.shapeType === 'complex') {
+                        // Mesma lógica de cruzamento brutal garantindo renderização idêntica no PNG
+                        const chaoticAngle = angle + (i % 2 === 0 ? 1.8 : -1.8);
+                        r = (state.irregularRadii[i] || 35) * 12; 
                         
-                        if (type === 'star') {
-                            if (i % 2 !== 0) rPercent = 22;
-                        } else if (type === 'concave') {
-                            rPercent = 15 + (radii[i] || 0.5) * 35;
-                        } else if (type === 'convex') {
-                            rPercent = 45 + (radii[i] || 0.5) * 5;
-                        } else if (type === 'complex') {
-                            const angleOffset = ((radii[i] || 0.5) - 0.5) * (Math.PI * 1.5);
-                            angle += angleOffset;
-                            rPercent = 20 + (radii[i] || 0.5) * 30;
-                        }
-                        
-                        const px = (rPercent / 50) * (aw / 2) * Math.cos(angle);
-                        const py = (rPercent / 50) * (ah / 2) * Math.sin(angle);
-                        
-                        if (i === 0) ctx.moveTo(px, py);
-                        else ctx.lineTo(px, py);
+                        const x = r * Math.cos(chaoticAngle);
+                        const y = r * Math.sin(chaoticAngle);
+                        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                        continue;
                     }
-                    ctx.closePath();
+                    const x = r * Math.cos(angle);
+                    const y = r * Math.sin(angle);
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
                 }
-                ctx.fill();
-                ctx.restore();
             }
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
 
-            function drawImageAndExport() {
-                const art = arts[state.artIndex];
-                if (!art.file) return exportCanvas();
-                
-                const img = new Image();
-                img.crossOrigin = "Anonymous";
-                img.onload = () => {
-                    ctx.save();
-                    const iw = canvas.width * 0.75;
-                    const ih = canvas.height * 0.75;
-                    const scale = Math.min(iw / img.width, ih / img.height);
-                    const fitW = img.width * scale;
-                    const fitH = img.height * scale;
-                    const dx = cx - fitW / 2;
-                    const dy = cy - fitH / 2;
+            const currentArt = arts[state.artIndex];
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.src = currentArt.file;
 
-                    const isCustomizable = art.group === 2 || art.group === 3;
-                    
-                    if (isCustomizable) {
-                        if (state.imageFill) {
-                            const tCanvas = document.createElement('canvas');
-                            tCanvas.width = canvas.width;
-                            tCanvas.height = canvas.height;
-                            const tCtx = tCanvas.getContext('2d');
-                            tCtx.drawImage(img, dx, dy, fitW, fitH);
-                            tCtx.globalCompositeOperation = 'source-in';
-                            tCtx.fillStyle = `hsl(${state.imageColor.h}, ${state.imageColor.s}%, ${state.imageColor.l}%)`;
-                            tCtx.fillRect(0, 0, tCanvas.width, tCanvas.height);
-                            
-                            ctx.shadowColor = 'rgba(0,0,0,0.3)';
-                            ctx.shadowBlur = 25 * exportScale;
-                            ctx.shadowOffsetY = 20 * exportScale;
-                            ctx.drawImage(tCanvas, 0, 0);
-                        } else { // VAZADO (Knockout) perfura o fundo
-                            ctx.globalCompositeOperation = 'destination-out';
-                            ctx.drawImage(img, dx, dy, fitW, fitH);
+            img.onload = () => {
+                ctx.save();
+                ctx.globalAlpha = 0.20;
+                ctx.globalCompositeOperation = 'source-atop';
+                for (let x = 0; x < 1500; x += 3) {
+                    for (let y = 0; y < 1500; y += 3) {
+                        if (Math.random() > 0.5) {
+                            ctx.fillStyle = Math.random() > 0.5 ? '#fff' : '#000';
+                            ctx.fillRect(x, y, 2, 2);
                         }
-                    } else { // Normal (Lote 1)
-                        ctx.shadowColor = 'rgba(0,0,0,0.3)';
-                        ctx.shadowBlur = 25 * exportScale;
-                        ctx.shadowOffsetY = 20 * exportScale;
-                        ctx.drawImage(img, dx, dy, fitW, fitH);
                     }
-                    
-                    ctx.restore();
-                    exportCanvas();
-                };
-                img.onerror = () => exportCanvas();
-                img.src = art.file;
-            }
+                }
+                ctx.restore();
 
-            function exportCanvas() {
                 const link = document.createElement('a');
-                link.download = `RhinoLogo_${Date.now()}.png`;
+                link.download = `Rinoceronte_Branco_${Date.now()}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
-                btn.innerHTML = originalText;
-                feather.replace();
-            }
-
-            // Inicia o processo de renderização nativa em ordem (Base > Forma > Imagem > Exportar)
-            drawBaseShape();
-            drawArtShape();
-            drawImageAndExport();
+            };
         }
 
         window.onload = initApp;
