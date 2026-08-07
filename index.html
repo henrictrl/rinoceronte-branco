@@ -59,8 +59,8 @@
         /* Fundo Geométrico do Canvas */
         .canvas-bg {
             background-color: #eeebe3;
-            background-image: radial-gradient(#d1cfc7 1px, transparent 1px);
-            background-size: 20px 20px;
+            background-image: none !important;
+            background-size: auto !important;
         }
         
         .transition-shape {
@@ -68,19 +68,6 @@
             transform-origin: center center;
         }
 
-        /* Granulado / Noise em CSS (UI Premium) */
-        .noise-overlay {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            z-index: 50;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.20'/%3E%3C/svg%3E");
-            mix-blend-mode: multiply;
-        }
-        .dark .noise-overlay {
-            mix-blend-mode: screen;
-            opacity: 0.9;
-        }
 
         #art-container,
         #art-shape,
@@ -90,44 +77,109 @@
             touch-action: none;
         }
 
+        #art-container {
+            overflow: visible;
+        }
+
         .text-item {
             position: absolute;
-            min-width: 48px;
-            max-width: 220px;
-            padding: 8px 10px;
+            min-width: 64px;
+            max-width: none;
+            padding: 8px 0;
             white-space: pre-wrap;
             word-break: break-word;
-            text-align: center;
-            cursor: text;
+            cursor: move;
             user-select: text;
-            background: rgba(255,255,255,0.85);
-            border: 1px solid rgba(148,163,184,0.7);
-            border-radius: 0.75rem;
-            box-shadow: 0 10px 35px rgba(15,23,42,0.08);
+            background: transparent;
+            border: 1px solid rgba(148,163,184,0.25);
+            border-radius: 26px;
             line-height: 1.1;
             color: #111827;
+            transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+            overflow: visible;
         }
 
-        .text-item:focus {
-            outline: 2px solid rgba(59,130,246,0.8);
-            outline-offset: 2px;
+        .text-item.selected {
+            border-color: #2563eb;
+            box-shadow: 0 18px 35px rgba(15,23,42,0.16);
         }
 
-        .text-item .drag-handle {
+        .text-item .text-content {
+            outline: none;
+            padding: 12px 16px;
+            border-radius: 24px;
+            min-width: 64px;
+            display: inline-block;
+            background: rgba(255,255,255,0.06);
+            color: inherit;
+            font: inherit;
+        }
+
+        .text-item .text-toolbar {
             position: absolute;
-            top: 4px;
-            right: 4px;
-            width: 18px;
-            height: 18px;
-            border-radius: 9999px;
-            background: rgba(255,255,255,0.95);
-            border: 1px solid rgba(148,163,184,0.8);
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: calc(100% + 10px);
+            display: flex;
+            gap: 6px;
+            padding: 6px 8px;
+            border-radius: 999px;
+            background: rgba(15,23,42,0.92);
+            color: white;
+            font-size: 12px;
+            backdrop-filter: blur(8px);
+            pointer-events: auto;
+            z-index: 20;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+
+        .text-item.selected .text-toolbar {
+            opacity: 1;
+        }
+
+        .text-item .text-toolbar button,
+        .text-item .text-toolbar input[type=color] {
+            border: none;
+            outline: none;
+            background: rgba(255,255,255,0.12);
+            color: inherit;
+            cursor: pointer;
+            border-radius: 999px;
+        }
+
+        .text-item .text-toolbar button {
+            width: 28px;
+            height: 28px;
             display: grid;
             place-items: center;
-            font-size: 10px;
-            cursor: grab;
-            user-select: none;
-            color: #475569;
+        }
+
+        .text-item .text-toolbar button:hover,
+        .text-item .text-toolbar input[type=color]:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .text-item .text-toolbar input[type=color] {
+            width: 28px;
+            height: 28px;
+            padding: 0;
+        }
+
+        #add-text-btn {
+            position: absolute;
+            bottom: 1rem;
+            right: 1rem;
+            z-index: 30;
+            padding: 0.8rem 1rem;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.18);
+            background: rgba(15,23,42,0.86);
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 700;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 18px 45px rgba(15,23,42,0.18);
         }
 
         /* Classes auxiliares para animação do Tutorial */
@@ -348,43 +400,7 @@
                 </div>
             </div>
 
-            <!-- SEÇÃO 5: Texto -->
-            <div class="space-y-4 pt-4 border-t border-gray-100 dark:border-slate-700">
-                <div class="flex justify-between items-center">
-                    <label class="text-sm font-semibold text-gray-700 dark:text-gray-300">5. Texto</label>
-                    <button type="button" onclick="addTextItem()" class="text-[10px] uppercase font-bold px-3 py-1.5 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition" title="Adicionar texto">Adicionar</button>
-                </div>
-                <div class="space-y-3">
-                    <input id="text-input" type="text" placeholder="Escreva algo e pressione Enter" class="w-full text-xs px-3 py-2 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg text-gray-700 dark:text-gray-100 outline-none focus:ring-1 focus:ring-indigo-500 transition" maxlength="120">
-                    <div class="grid grid-cols-2 gap-2">
-                        <select id="text-font-select" class="p-2.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg text-sm font-medium outline-none dark:text-gray-200">
-                            <option value="Montserrat">Montserrat</option>
-                            <option value="Arial">Arial</option>
-                            <option value="Georgia">Georgia</option>
-                            <option value="Courier New">Courier New</option>
-                        </select>
-                        <select id="text-weight-select" class="p-2.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg text-sm font-medium outline-none dark:text-gray-200">
-                            <option value="400">Regular</option>
-                            <option value="500">Medium</option>
-                            <option value="600">Semi Bold</option>
-                            <option value="700">Bold</option>
-                        </select>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2 items-end">
-                        <div>
-                            <label class="text-[10px] uppercase tracking-wider text-gray-400 dark:text-gray-500">Cor do texto</label>
-                            <input type="color" id="text-color-picker" value="#111111" class="w-full h-10 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 cursor-pointer">
-                        </div>
-                        <div class="space-y-1">
-                            <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 font-medium">
-                                <span>Tamanho</span>
-                                <span id="text-size-val">36px</span>
-                            </div>
-                            <input type="range" id="text-size-slider" min="16" max="72" value="36">
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- SEÇÃO 5: Texto removida para edição inline no canvas -->
 
             <!-- SEÇÃO 6: Cor do Ambiente (Canvas) -->
             <div class="space-y-4 pt-4 border-t border-gray-100 dark:border-slate-700">
@@ -484,8 +500,6 @@
             </div>
         </div>
 
-        <!-- Camada de Granulado Estética (Noise) -->
-        <div class="noise-overlay"></div>
 
         <div id="art-container" class="relative flex items-center justify-center w-full max-w-[420px] aspect-square drop-shadow-sm cursor-grab active:cursor-grabbing">
             <!-- Fundo Base Extra (Por trás de tudo) -->
@@ -497,6 +511,9 @@
             <!-- PNG da Arte (Frente) -->
             <div id="art-image" class="absolute w-[75%] h-[75%] bg-contain bg-center bg-no-repeat drop-shadow-sm cursor-grab active:cursor-grabbing hover:drop-shadow-md transition-shadow"></div>
         </div>
+        <button id="add-text-btn" type="button" class="absolute bottom-4 right-4 z-20 px-4 py-2 rounded-full bg-slate-900 text-white text-xs font-semibold shadow-xl shadow-slate-900/15 hover:bg-slate-800 transition">
+            + Texto
+        </button>
     </main>
 
     <!-- MODAL DE TUTORIAL -->
@@ -774,15 +791,12 @@
             // placeholder for future text-specific logic if needed
         }
 
-        function addTextItem() {
-            const textInput = document.getElementById('text-input');
-            const text = textInput.value.trim();
-            if (!text) return;
+        function addTextItem(x = 0, y = 0) {
             const item = {
                 id: Date.now() + Math.random(),
-                text,
-                x: 0,
-                y: 0,
+                text: 'Novo texto',
+                x,
+                y,
                 font: state.textFont,
                 weight: state.textWeight,
                 size: state.textSize,
@@ -790,11 +804,25 @@
                 el: null
             };
             state.textItems.push(item);
-            textInput.value = '';
+            activeTextId = item.id;
             renderCanvas();
             requestAnimationFrame(() => {
-                if (item.el) item.el.focus();
+                if (item.el) {
+                    const contentEl = item.el.querySelector('.text-content');
+                    if (contentEl) contentEl.focus();
+                }
             });
+        }
+
+        function setActiveTextItem(itemId) {
+            activeTextId = itemId;
+            renderTextItemsDOM();
+        }
+
+        function deleteTextItem(itemId) {
+            state.textItems = state.textItems.filter(item => item.id !== itemId);
+            if (activeTextId === itemId) activeTextId = null;
+            renderCanvas();
         }
 
         function setupEventListeners() {
@@ -833,32 +861,15 @@
                 renderCanvas();
             });
 
-            document.getElementById('text-input').addEventListener('keydown', e => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addTextItem();
+            document.getElementById('add-text-btn').addEventListener('click', () => addTextItem());
+
+            document.addEventListener('click', e => {
+                if (!e.target.closest('.text-item')) {
+                    activeTextId = null;
+                    renderTextItemsDOM();
                 }
             });
-            document.getElementById('text-font-select').addEventListener('change', e => {
-                state.textFont = e.target.value;
-                renderCanvas();
-            });
-            document.getElementById('text-weight-select').addEventListener('change', e => {
-                state.textWeight = e.target.value;
-                renderCanvas();
-            });
-            document.getElementById('text-color-picker').addEventListener('input', e => {
-                const color = hexToHsl(e.target.value);
-                if (color) {
-                    state.textColor = color;
-                    renderCanvas();
-                }
-            });
-            document.getElementById('text-size-slider').addEventListener('input', e => {
-                state.textSize = parseInt(e.target.value);
-                document.getElementById('text-size-val').textContent = state.textSize + 'px';
-                renderCanvas();
-            });
+
             document.getElementById('base-visible-toggle').addEventListener('change', e => {
                 state.baseVisible = e.target.checked;
                 renderCanvas();
@@ -1237,7 +1248,6 @@
                 if (!item.el) {
                     const el = document.createElement('div');
                     el.className = 'text-item';
-                    el.contentEditable = 'false';
                     el.dataset.id = item.id;
                     el.tabIndex = 0;
                     el.style.pointerEvents = 'auto';
@@ -1248,31 +1258,81 @@
                     contentEl.contentEditable = 'true';
                     contentEl.style.whiteSpace = 'pre-wrap';
                     contentEl.style.pointerEvents = 'auto';
+                    contentEl.style.minWidth = '90px';
+                    contentEl.style.maxWidth = '260px';
+                    contentEl.style.textAlign = 'center';
                     contentEl.innerText = item.text;
+
+                    const toolbar = document.createElement('div');
+                    toolbar.className = 'text-toolbar';
+                    toolbar.innerHTML = `
+                        <button type="button" class="toolbar-size-minus" title="Diminuir">A-</button>
+                        <button type="button" class="toolbar-size-plus" title="Aumentar">A+</button>
+                        <button type="button" class="toolbar-weight-toggle" title="Tamanho">W</button>
+                        <button type="button" class="toolbar-font-toggle" title="Fonte">F</button>
+                        <input type="color" class="toolbar-color" value="${getTextColorHex(item.color)}" title="Cor" />
+                        <button type="button" class="toolbar-delete" title="Excluir">✕</button>
+                    `;
 
                     const handle = document.createElement('div');
                     handle.className = 'drag-handle';
                     handle.textContent = '⠿';
                     handle.contentEditable = 'false';
 
+                    el.appendChild(toolbar);
                     el.appendChild(contentEl);
                     el.appendChild(handle);
 
-                    el.addEventListener('input', () => {
+                    contentEl.addEventListener('input', () => {
+                        item.text = contentEl.innerText;
+                    });
+
+                    contentEl.addEventListener('blur', () => {
                         item.text = contentEl.innerText.trim();
                     });
-                    el.addEventListener('blur', () => {
-                        item.text = contentEl.innerText.trim();
-                    });
-                    el.addEventListener('keydown', e => {
-                        if (e.key === 'Enter') {
-                            e.preventDefault();
-                            addTextItem();
-                        }
+
+                    el.addEventListener('click', e => {
+                        e.stopPropagation();
+                        setActiveTextItem(item.id);
                     });
 
                     handle.addEventListener('mousedown', e => startDragText(e, item.id));
                     handle.addEventListener('touchstart', e => startDragText(e, item.id), {passive: false});
+
+                    toolbar.querySelector('.toolbar-size-minus').addEventListener('click', e => {
+                        e.stopPropagation();
+                        item.size = Math.max(16, item.size - 2);
+                        renderCanvas();
+                    });
+                    toolbar.querySelector('.toolbar-size-plus').addEventListener('click', e => {
+                        e.stopPropagation();
+                        item.size = Math.min(120, item.size + 2);
+                        renderCanvas();
+                    });
+                    toolbar.querySelector('.toolbar-weight-toggle').addEventListener('click', e => {
+                        e.stopPropagation();
+                        const weights = ['400', '500', '600', '700'];
+                        item.weight = weights[(weights.indexOf(item.weight.toString()) + 1) % weights.length];
+                        renderCanvas();
+                    });
+                    toolbar.querySelector('.toolbar-font-toggle').addEventListener('click', e => {
+                        e.stopPropagation();
+                        const fonts = ['Montserrat', 'Arial', 'Georgia', 'Courier New'];
+                        item.font = fonts[(fonts.indexOf(item.font) + 1) % fonts.length];
+                        renderCanvas();
+                    });
+                    toolbar.querySelector('.toolbar-color').addEventListener('input', e => {
+                        e.stopPropagation();
+                        const color = hexToHsl(e.target.value);
+                        if (color) {
+                            item.color = color;
+                            renderCanvas();
+                        }
+                    });
+                    toolbar.querySelector('.toolbar-delete').addEventListener('click', e => {
+                        e.stopPropagation();
+                        deleteTextItem(item.id);
+                    });
 
                     layer.appendChild(el);
                     item.el = el;
@@ -1286,9 +1346,13 @@
                 el.style.fontWeight = item.weight;
                 el.style.fontSize = item.size + 'px';
                 el.style.color = getTextColorHex(item.color);
-                el.style.background = 'rgba(255,255,255,0.85)';
-                el.style.borderColor = document.activeElement === el || el.contains(document.activeElement) ? '#2563eb' : 'rgba(148,163,184,0.7)';
+                el.classList.toggle('selected', activeTextId === item.id);
                 if (contentEl && contentEl.innerText !== item.text) contentEl.innerText = item.text;
+                const toolbar = el.querySelector('.text-toolbar');
+                if (toolbar) {
+                    const colorInput = toolbar.querySelector('.toolbar-color');
+                    if (colorInput) colorInput.value = getTextColorHex(item.color);
+                }
             });
 
             Array.from(layer.children).forEach(child => {
@@ -1525,9 +1589,9 @@
 
             const currentArt = arts[state.artIndex];
             const img = new Image();
-            img.src = currentArt.file;
-
             img.onload = () => {
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
                 ctx.save();
                 ctx.translate(center + (state.imageOffset.x * scale), center + (state.imageOffset.y * scale));
                 if (currentArt.group > 1 && state.imageFill) {
@@ -1558,24 +1622,12 @@
                     ctx.restore();
                 }
 
-                ctx.save();
-                ctx.globalAlpha = 0.20;
-                ctx.globalCompositeOperation = 'source-atop';
-                for (let x = 0; x < canvas.width; x += 3) {
-                    for (let y = 0; y < canvas.height; y += 3) {
-                        if (Math.random() > 0.5) {
-                            ctx.fillStyle = Math.random() > 0.5 ? '#fff' : '#000';
-                            ctx.fillRect(x, y, 2, 2);
-                        }
-                    }
-                }
-                ctx.restore();
-
                 const link = document.createElement('a');
                 link.download = `Rinoceronte_Branco_${Date.now()}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
             };
+            img.src = currentArt.file;
         }
 
         window.onload = initApp;
